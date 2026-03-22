@@ -1,0 +1,571 @@
+{
+  "id": "cnn",
+  "order": 2,
+  "algorithmId": "cnn_classifier",
+  "title": "第 2 章 CNN",
+  "subtitle": "从局部感受野、padding、stride 到 receptive field",
+  "blurb": "这一章不把 CNN 当黑箱，而是把它拆成会动的教材页：为什么图像不适合直接全连接、卷积到底在算什么、padding 和 stride 改变了什么、receptive field 为什么决定模型能看多远。",
+  "summary": "这一章不把 CNN 当黑箱，而是把它拆成会动的教材页：为什么图像不适合直接全连接、卷积到底在算什么、padding 和 stride 改变了什么、receptive field 为什么决定模型能看多远。",
+  "pages": [
+    {
+      "id": "opening",
+      "title": "1. 为什么图像不能只靠全连接",
+      "phase": "forward",
+      "teachingTab": "intuition",
+      "summary": "CNN 的起点不是公式本身，而是两个问题：图像有局部结构，而且同一种模式换位置后仍然应该被识别。",
+      "paragraphs": [
+        "如果把一张图像直接摊平成一个长向量，再交给全连接层，每个输出位置都必须看完整张图。这样会带来两个问题：参数量巨大，以及模型没有显式利用图像的空间结构。",
+        "更关键的是，这种建模方式默认“左上角的一条边”和“右下角的一条边”需要用两套不同参数去重新学习。可在图像任务里，我们明明知道同一类局部模式换了位置以后，仍然应该被同一种 detector 识别。",
+        "因此 CNN 的真正起点不是某个卷积公式，而是把图像的结构性先验写进模型：附近像素更相关，同一种局部模式可以在全图复用。"
+      ],
+      "sections": [
+        {
+          "title": "一、全连接对图像为什么笨重",
+          "paragraphs": [
+            "设输入图像为 X，输出特征图为 H。如果使用最一般的全连接映射，那么每个输出位置 (i,j) 都对应一组独立参数 W_{i,j,k,l}，它要和整张图的所有像素 x_{k,l} 相连。",
+            "这意味着参数量会随输出空间大小和输入空间大小同时膨胀。图像越大，模型就越不经济。"
+          ]
+        },
+        {
+          "title": "二、卷积依赖两个重要假设",
+          "paragraphs": [
+            "局部性：当前位置的特征通常主要由附近像素决定，而不是依赖整张图的所有远处像素。",
+            "平移等变 / 参数共享：如果一个模式在左上角是边缘，在右下角仍然也是边缘。检测这个模式的那组参数应该可以复用，而不必为每个位置重新学一遍。"
+          ]
+        },
+        {
+          "title": "三、从全连接到卷积",
+          "paragraphs": [
+            "当我们假设只有局部邻域会影响当前位置，并且不同位置共享同一组局部权重时，原本庞大的四维权重张量 W_{i,j,k,l} 就退化成一个小小的 kernel V_{a,b}。",
+            "这一步就是从一般线性层走向卷积层的关键。它不是“另起炉灶”，而是对原始全连接映射加上局部连接和参数共享这两个结构约束。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "全连接图像映射",
+          "expression": "h_{i,j} = \\sum_{k,l} W_{i,j,k,l} x_{k,l} + b_{i,j}",
+          "explanation": "每个输出位置都依赖整张图，参数既随输出位置变化，也随输入位置变化。"
+        },
+        {
+          "label": "局部性约束",
+          "expression": "h_{i,j} = \\sum_{a,b} V_{i,j,a,b} x_{i+a, j+b} + b_{i,j}",
+          "explanation": "只保留当前位置附近的小窗口，不再连接整张图。"
+        },
+        {
+          "label": "参数共享后的卷积",
+          "expression": "h_{i,j} = \\sum_{a,b} V_{a,b} x_{i+a, j+b} + b",
+          "explanation": "同一组 kernel 在所有位置复用，这一步就得到了卷积。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "先看 Input Patch 和 kernel，不要一上来就看最终分类。",
+        "理解 kernel 的工作更像“局部模式探测器”，不是整图分类器。",
+        "把这页的三组公式和图里的 patch、kernel、feature map 对起来。"
+      ],
+      "experimentPrompt": "先只看 patch 和 kernel，试着用语言描述这个 kernel 更像在找竖线还是横线。",
+      "takeaways": [
+        "卷积不是“更复杂的全连接”，而是把图像先验写进模型。",
+        "局部性减少连接范围，参数共享减少参数数量。",
+        "CNN 的优势首先来自结构设计，而不只是训练技巧。"
+      ],
+      "callout": {
+        "title": "阅读提示",
+        "body": "这一页最重要的不是背三条公式，而是看清楚约束是怎样一步步加上去的：先从全连接出发，再限制局部连接，最后再共享参数。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "intuition",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「全连接图像映射」到底在负责什么。",
+        "cues": [
+          "CNN 的起点不是公式本身，而是两个问题：图像有局部结构，而且同一种模式换位置后仍然应该被识别。",
+          "卷积不是“更复杂的全连接”，而是把图像先验写进模型。",
+          "局部性减少连接范围，参数共享减少参数数量。",
+          "全连接图像映射：每个输出位置都依赖整张图，参数既随输出位置变化，也随输入位置变化。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "convolution",
+      "title": "2. convolution 到底在算什么",
+      "phase": "forward",
+      "teachingTab": "visual",
+      "summary": "这一页的目标，是把 kernel、patch、feature map 的关系从“名词”变成“过程”。",
+      "paragraphs": [
+        "当一个 kernel 滑到某个 patch 上时，它会对 patch 和自身做逐元素相乘再求和。这个分数越高，说明当前 patch 越像 kernel 想找的 pattern。",
+        "从数据流角度看，卷积层并不是在“整图理解语义”，而是在每个局部窗口上反复做同一种检测。先有局部响应，后有整图判断。",
+        "因此这一页真正要建立的是一个稳定直觉：feature map 不是抽象热图，而是某个 detector 在整张图上滑动以后留下的响应轨迹。"
+      ],
+      "sections": [
+        {
+          "title": "一、局部匹配",
+          "paragraphs": [
+            "卷积可以先理解成一个滑动窗口打分器。每到一个位置，就把局部 patch 与 kernel 对齐，并计算它们的相似度。"
+          ]
+        },
+        {
+          "title": "二、为什么会形成 feature map",
+          "paragraphs": [
+            "因为同一个 kernel 会扫过整张图，所以每个位置都会得到一个分数。把所有位置的分数拼起来，就是这张 kernel 对整张图的响应图，也就是 feature map。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "单位置卷积",
+          "expression": "y_{i,j} = \\sum_{a=0}^{k_h-1} \\sum_{b=0}^{k_w-1} K_{a,b} X_{i+a,j+b}",
+          "explanation": "当前位置的输出，是 kernel 和当前 patch 逐元素相乘再求和。"
+        },
+        {
+          "label": "激活",
+          "expression": "A_{i,j} = \\max(0, y_{i,j})",
+          "explanation": "ReLU 保留正响应，让真正匹配的局部模式更突出。"
+        },
+        {
+          "label": "整张特征图",
+          "expression": "Y = K \\otimes X",
+          "explanation": "把单位置的局部打分在所有空间位置重复执行，就得到整张 feature map。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "当前高亮的是哪个 patch。",
+        "这个 patch 为什么会让某个 feature map 响应更高。",
+        "公式里的乘法和求和，对应图里的哪一块区域。"
+      ],
+      "experimentPrompt": "切到 Math，看一眼局部打分，再回到图里找它对应的 patch。",
+      "takeaways": [
+        "卷积先是“局部打分”，后面才是“整图判断”。",
+        "feature map 记录的是“哪里像某种模式”。",
+        "看懂卷积的关键不是记定义，而是盯住 patch、kernel 和响应值之间的映射。"
+      ],
+      "callout": {
+        "title": "阅读提示",
+        "body": "先盯住一个 patch，把这一次局部匹配看懂；再把这种匹配想象成在整张图上重复执行。这样 feature map 的含义会一下子清楚。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "visual",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「单位置卷积」到底在负责什么。",
+        "cues": [
+          "这一页的目标，是把 kernel、patch、feature map 的关系从“名词”变成“过程”。",
+          "卷积先是“局部打分”，后面才是“整图判断”。",
+          "feature map 记录的是“哪里像某种模式”。",
+          "单位置卷积：当前位置的输出，是 kernel 和当前 patch 逐元素相乘再求和。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "padding",
+      "title": "3. padding 为什么不是随手补零",
+      "phase": "forward",
+      "teachingTab": "why",
+      "summary": "padding 的作用不是把图补大，而是控制边界信息是否被过早丢掉。",
+      "paragraphs": [
+        "如果不做 padding，一个 k×k kernel 每滑一次，特征图就会在长宽上缩小。这样靠近边界的位置会被更快忽略，深层网络里边界信息会迅速消失。",
+        "padding 的意义在于：让卷积既能保留边缘附近的局部模式，又能让网络深度增加时不至于太快压缩空间分辨率。"
+      ],
+      "sections": [
+        {
+          "title": "一、为什么边界会吃亏",
+          "paragraphs": [
+            "卷积核只能完整落在输入上时才参与计算，因此边缘像素被访问的次数比中间像素更少。没有 padding 时，边界天然更弱势。"
+          ]
+        },
+        {
+          "title": "二、padding 控制的是信息保留节奏",
+          "paragraphs": [
+            "适当 padding 之后，特征图的尺寸可以保持稳定，网络能在更深层次上继续分析边缘和角落的结构，而不是过早把它们丢掉。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "输出尺寸",
+          "expression": "H_{out} = H_{in} - K + 1",
+          "explanation": "不加 padding 时，卷积后空间尺寸会自然缩小。"
+        },
+        {
+          "label": "带 padding 的输出尺寸",
+          "expression": "H_{out} = H_{in} + 2P - K + 1",
+          "explanation": "P 越大，特征图越不容易缩小。"
+        },
+        {
+          "label": "same padding 常见条件",
+          "expression": "当 stride = 1 且 K 为奇数时，常取 P = (K - 1)/2",
+          "explanation": "这样输出尺寸通常和输入尺寸相同。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "边界保护",
+          "body": "padding 让边缘像素也有机会被更多次卷积访问。"
+        },
+        {
+          "title": "尺寸控制",
+          "body": "padding 决定特征图在层与层之间缩小得有多快。"
+        }
+      ],
+      "observe": [
+        "想一想图里的 patch 如果滑到边缘会发生什么。",
+        "把“边缘像素被看见几次”作为理解 padding 的入口。",
+        "对照公式里的 H_out，理解尺寸为什么会变。"
+      ],
+      "experimentPrompt": "先想象如果这张 5×5 小图完全不做 padding，卷积核还能在边缘附近留下多少有效响应？",
+      "takeaways": [
+        "padding 的核心是保留边界信息，不只是凑尺寸。",
+        "same padding 让网络更容易堆深，而不必太快损失分辨率。",
+        "看卷积网络时，尺寸变化和信息变化要一起读。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "why",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「输出尺寸」到底在负责什么。",
+        "cues": [
+          "padding 的作用不是把图补大，而是控制边界信息是否被过早丢掉。",
+          "padding 的核心是保留边界信息，不只是凑尺寸。",
+          "same padding 让网络更容易堆深，而不必太快损失分辨率。",
+          "输出尺寸：不加 padding 时，卷积后空间尺寸会自然缩小。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "stride",
+      "title": "4. stride 在决定扫描步长",
+      "phase": "forward",
+      "teachingTab": "visual",
+      "summary": "stride 控制卷积核是逐格滑动，还是跳着滑动；它改变的是采样密度。",
+      "paragraphs": [
+        "当 stride = 1 时，卷积核几乎不遗漏任何相邻位置；当 stride > 1 时，模型会用更稀疏的方式扫描输入。",
+        "这会带来两个直接后果：计算更省，但空间分辨率下降更快。也就是说，stride 在效率和细节之间做权衡。"
+      ],
+      "sections": [
+        {
+          "title": "一、stride 改变了什么",
+          "paragraphs": [
+            "它不改变 kernel 本身的参数，也不改变单次卷积如何计算；它改变的是相邻两次卷积中心之间的距离。"
+          ]
+        },
+        {
+          "title": "二、为什么 stride 会影响细节",
+          "paragraphs": [
+            "步长一旦增大，部分位置就不会被单独采样，细粒度结构会更快消失。这很适合快速压缩，但不适合一开始就用得过大。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "带 stride 的输出尺寸",
+          "expression": "H_{out} = \\left\\lfloor \\frac{H_{in} + 2P - K}{S} \\right\\rfloor + 1",
+          "explanation": "步长 S 越大，输出特征图越小。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "稠密扫描",
+          "body": "stride = 1 时，模型对空间细节最敏感。"
+        },
+        {
+          "title": "高效下采样",
+          "body": "更大的 stride 可以减少计算，但会牺牲局部精度。"
+        }
+      ],
+      "observe": [
+        "想象 kernel 是逐格还是跳格前进。",
+        "把 stride 和 pooling 的作用区分开：一个是采样间隔，一个是局部汇聚。",
+        "理解为什么 stride 变大后，特征图更小。"
+      ],
+      "experimentPrompt": "如果把当前卷积层的 stride 从 1 改成 2，你觉得 feature map 会丢掉哪些局部细节？",
+      "takeaways": [
+        "stride 控制的是扫描密度，而不是卷积定义本身。",
+        "大 stride 更像一种带学习能力的下采样。",
+        "CNN 的很多空间压缩，其实是 stride 和 pooling 共同完成的。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "visual",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「带 stride 的输出尺寸」到底在负责什么。",
+        "cues": [
+          "stride 控制卷积核是逐格滑动，还是跳着滑动；它改变的是采样密度。",
+          "stride 控制的是扫描密度，而不是卷积定义本身。",
+          "大 stride 更像一种带学习能力的下采样。",
+          "带 stride 的输出尺寸：步长 S 越大，输出特征图越小。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "feature-map",
+      "title": "5. feature map 和 pooling 在保留什么",
+      "phase": "loss",
+      "teachingTab": "why",
+      "summary": "feature map 保留的是“哪里像某种模式”，pooling 保留的是“最强证据”。",
+      "paragraphs": [
+        "卷积之后，模型得到的不再是原图，而是一张响应图。它告诉我们：图像哪些位置更像竖线，哪些位置更像横线。",
+        "接下来的 pooling 不是为了炫技，而是为了把最强的证据提炼出来。后续分类阶段不必关心每一个位置，只关心最显著的 pattern 是否存在。"
+      ],
+      "sections": [],
+      "formulas": [
+        {
+          "label": "最大池化",
+          "expression": "p = \\max_{i,j} A_{i,j}",
+          "explanation": "取出 feature map 中最强的响应，作为该模式是否存在的证据。"
+        },
+        {
+          "label": "softmax 分类",
+          "expression": "p_c = \\frac{e^{z_c}}{\\sum_{c'} e^{z_{c'}}}",
+          "explanation": "把不同模式的响应映射成类别概率。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "区分原始输入和 feature map 的语义差别。",
+        "理解 pooling 在做“提纯”而不是“丢信息”。",
+        "看 Loss 如何和最终概率联系起来。"
+      ],
+      "experimentPrompt": "比较两个 feature map，问自己：它们分别更像在感知什么模式？",
+      "takeaways": [],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "loss",
+        "teachingTab": "why",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「最大池化」到底在负责什么。",
+        "cues": [
+          "feature map 保留的是“哪里像某种模式”，pooling 保留的是“最强证据”。",
+          "最大池化：取出 feature map 中最强的响应，作为该模式是否存在的证据。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "receptive-field",
+      "title": "6. receptive field 决定模型到底能看多远",
+      "phase": "loss",
+      "teachingTab": "why",
+      "summary": "单层卷积只能看一个局部 patch，但多层叠起来之后，深层单元看到的是越来越大的区域。",
+      "paragraphs": [
+        "很多人第一次学 CNN 时，会误以为卷积永远只能看 3×3 或 5×5 这么小的局部区域。其实这是单层视角。多层卷积叠加后，深层特征的 receptive field 会逐步扩大。",
+        "这也是为什么浅层更偏边缘和纹理，深层更偏部件和整体语义：它们真正能“看到”的空间范围不同。"
+      ],
+      "sections": [
+        {
+          "title": "一、什么是 receptive field",
+          "paragraphs": [
+            "对某个深层特征位置来说，输入图像中会影响它的那一片区域，就叫它的感受野。"
+          ]
+        },
+        {
+          "title": "二、为什么深层能看见更大模式",
+          "paragraphs": [
+            "每多堆一层卷积，上一层的局部模式又会被下一层重新组合。于是深层节点虽然仍在做局部运算，但它依赖的原图区域已经越来越大。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "感受野递推",
+          "expression": "R_l = R_{l-1} + (K_l - 1) J_{l-1}",
+          "explanation": "每加一层，感受野会根据当前 kernel 大小继续扩张。"
+        },
+        {
+          "label": "跳跃间隔递推",
+          "expression": "J_l = J_{l-1} \\cdot S_l",
+          "explanation": "如果 stride 更大，深层特征在原图上的步距也会更大。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "浅层看纹理",
+          "body": "浅层 receptive field 小，适合检测边缘、角点和简单纹理。"
+        },
+        {
+          "title": "深层看语义",
+          "body": "深层 receptive field 大，更适合组合出部件和整体形状。"
+        }
+      ],
+      "observe": [
+        "把当前 patch 看成浅层视角，而不是整网视角。",
+        "思考：如果继续堆叠两层这样的卷积，深层节点会依赖原图多大区域。",
+        "把 receptive field 和 feature hierarchy 联系起来。"
+      ],
+      "experimentPrompt": "如果同样用 3×3 kernel，堆三层和只用一层，在“能看到的原图范围”上会差多少？",
+      "takeaways": [
+        "kernel 小不代表网络看得近，关键要看堆了多少层。",
+        "receptive field 把局部计算和全局语义联系起来。",
+        "padding、stride、层数都会一起影响深层能看到的范围。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "loss",
+        "teachingTab": "why",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「感受野递推」到底在负责什么。",
+        "cues": [
+          "单层卷积只能看一个局部 patch，但多层叠起来之后，深层单元看到的是越来越大的区域。",
+          "kernel 小不代表网络看得近，关键要看堆了多少层。",
+          "receptive field 把局部计算和全局语义联系起来。",
+          "感受野递推：每加一层，感受野会根据当前 kernel 大小继续扩张。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "backprop",
+      "title": "7. filter 是怎么被学会的",
+      "phase": "backward",
+      "teachingTab": "pseudocode",
+      "summary": "CNN 真正厉害的地方，不是有 kernel，而是 kernel 会被数据驱动着不断更新。",
+      "paragraphs": [
+        "当模型预测错了，误差信号会往回传，最终落到 kernel 的每一个参数上。哪个位置该增大、哪个位置该减小，都会通过 gradient 体现出来。",
+        "所以 kernel 不是手工写死的模板，而是通过大量样本逐渐学会的 pattern detector。"
+      ],
+      "sections": [],
+      "formulas": [
+        {
+          "label": "卷积核更新",
+          "expression": "K \\leftarrow K - \\eta \\frac{\\partial L}{\\partial K}",
+          "explanation": "学习率 η 决定每次沿梯度方向更新的步长。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "看 backward / update 阶段 kernel 的变化。",
+        "对照 Pseudo Code，确认 gradient 最终落在了哪里。",
+        "思考：为什么 filter 更新后，feature map 也会变。"
+      ],
+      "experimentPrompt": "反复点几次 update，观察 filter 和 feature map 是否一起变化。",
+      "takeaways": [
+        "feature map 会变，是因为 kernel 先变了。",
+        "卷积核梯度本质上是“哪些局部模式该更强、哪些该更弱”的反馈。",
+        "这一页是 CNN 从静态滤波走向可学习模型的关键。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "backward",
+        "teachingTab": "pseudocode",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「卷积核更新」到底在负责什么。",
+        "cues": [
+          "CNN 真正厉害的地方，不是有 kernel，而是 kernel 会被数据驱动着不断更新。",
+          "feature map 会变，是因为 kernel 先变了。",
+          "卷积核梯度本质上是“哪些局部模式该更强、哪些该更弱”的反馈。",
+          "卷积核更新：学习率 η 决定每次沿梯度方向更新的步长。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "lab",
+      "title": "8. 动手实验：改一张图，看看 CNN 会怎么看",
+      "phase": "update",
+      "teachingTab": "mistake",
+      "summary": "这一页把 CNN 从“看别人解释”变成“自己做实验”。",
+      "paragraphs": [
+        "你可以直接修改自定义 CSV 里的像素，构造一个更偏竖线或更偏横线的 5x5 小图，然后观察 feature map、pooling 和最终概率如何变化。",
+        "做到这一层，你读到的就不再是一本静态教材，而是一本会响应你操作的图像计算书。"
+      ],
+      "sections": [],
+      "formulas": [],
+      "principles": [],
+      "observe": [
+        "重点看 update 前后 kernel 的变化。",
+        "对照 Focus Guide，确认当前该先看 patch、feature map 还是 probability。",
+        "别让公式和图分开读。"
+      ],
+      "experimentPrompt": "手工设计一张 5x5 图，让模型更偏向 class 1，再验证结果。",
+      "takeaways": [],
+      "callout": {
+        "title": "实验建议",
+        "body": "先只改 2 到 3 个像素，不要一次把整张图完全重画。这样你更容易看清“局部变化如何通过卷积传播到分类结果”。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "update",
+        "teachingTab": "mistake",
+        "traceFilter": "all",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "如果你要用一句话给别人讲这页，你会怎么说？",
+        "cues": [
+          "这一页把 CNN 从“看别人解释”变成“自己做实验”。"
+        ]
+      },
+      "review": null
+    }
+  ],
+  "review": {
+    "pageTitles": [
+      "1. 为什么图像不能只靠全连接",
+      "2. convolution 到底在算什么",
+      "3. padding 为什么不是随手补零",
+      "4. stride 在决定扫描步长",
+      "5. feature map 和 pooling 在保留什么",
+      "6. receptive field 决定模型到底能看多远",
+      "7. filter 是怎么被学会的",
+      "8. 动手实验：改一张图，看看 CNN 会怎么看"
+    ],
+    "keyIdeas": [
+      "边界保护",
+      "尺寸控制",
+      "稠密扫描",
+      "高效下采样",
+      "浅层看纹理",
+      "深层看语义"
+    ],
+    "formulaLabels": [
+      "全连接图像映射",
+      "局部性约束",
+      "参数共享后的卷积",
+      "单位置卷积",
+      "激活",
+      "整张特征图",
+      "输出尺寸",
+      "带 padding 的输出尺寸"
+    ],
+    "masteryChecks": [
+      "你能否解释局部性、参数共享、padding、stride 和 receptive field 之间的关系？",
+      "你能否说明 1 个 filter 为什么会生成 1 张 feature map？",
+      "你能否从 kernel 变化解释 feature map 为什么会跟着变？"
+    ]
+  }
+}

@@ -1,0 +1,628 @@
+{
+  "id": "rnn",
+  "order": 3,
+  "algorithmId": "rnn_sequence",
+  "title": "第 3 章 RNN",
+  "subtitle": "从时间展开、BPTT 到 LSTM 门控记忆",
+  "blurb": "这一章把 RNN 当成一本真正会动的序列教材来读。重点不是背 h_t 的公式，而是看清楚信息怎样沿时间滚动、为什么最后一个状态能代表整段序列、误差如何从未来一步步传回过去，以及 LSTM 为什么要把记忆管理拆成显式门控。",
+  "summary": "这一章把 RNN 当成一本真正会动的序列教材来读。重点不是背 h_t 的公式，而是看清楚信息怎样沿时间滚动、为什么最后一个状态能代表整段序列、误差如何从未来一步步传回过去，以及 LSTM 为什么要把记忆管理拆成显式门控。",
+  "pages": [
+    {
+      "id": "opening",
+      "title": "1. 为什么序列不能当普通样本看",
+      "phase": "forward",
+      "teachingTab": "intuition",
+      "summary": "RNN 的起点不是公式，而是承认序列里的先后顺序本身就是信息。",
+      "paragraphs": [
+        "在表格数据里，我们常把每条样本当成彼此独立的点；但在序列建模里，当前输入往往依赖前面已经发生过什么。价格趋势、语音片段、句子中的代词指代，都带着明显的先后关系。",
+        "RNN 的核心想法很直接：不要把每一步都看成一次全新的预测，而是让模型带着一个会滚动更新的 memory state 向前走。这样，过去的信息就不会在每个时间步被清空。",
+        "如果说卷积是把空间结构写进模型，那么 RNN 写进去的就是时间结构：先后顺序不能丢，历史状态必须可复用，变长序列也应该能被同一套更新规则处理。"
+      ],
+      "sections": [
+        {
+          "title": "一、顺序本身就是特征",
+          "paragraphs": [
+            "如果把序列打乱再送给模型，很多任务会立刻失去意义。'先升后降' 和 '先降后升' 的数值集合可能一样，但趋势完全不同。",
+            "所以 RNN 不是给静态样本多加了一层，而是把“时间依赖”直接写进模型结构里。"
+          ]
+        },
+        {
+          "title": "二、RNN 在补什么空白",
+          "paragraphs": [
+            "普通前馈网络擅长处理定长输入，却不会天然记住“上一时刻发生了什么”。RNN 通过隐藏状态 h_t，把上一时刻的压缩摘要带到当前时刻。",
+            "这意味着模型每读入一个新输入 x_t，都会同时参考“现在看到了什么”和“之前记住了什么”。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "状态更新",
+          "expression": "h_t = \\tanh(W_x x_t + W_h h_{t-1} + b)",
+          "explanation": "当前状态由当前输入和上一时刻状态共同决定。"
+        },
+        {
+          "label": "序列条件建模",
+          "expression": "p(y_t \\mid x_{1:t})",
+          "explanation": "序列任务的关键不是只看当前输入，而是根据到当前时刻为止的全部历史做判断。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "顺序敏感",
+          "body": "同一组数值按不同顺序出现，RNN 会得到不同的 hidden state。"
+        },
+        {
+          "title": "滚动记忆",
+          "body": "RNN 不是把过去完整存下来，而是把过去压缩进当前状态。"
+        }
+      ],
+      "observe": [
+        "先看时间轴，而不是先看公式。",
+        "关注每个时间步的输入和 hidden state 如何一起变化。",
+        "把 h_t 当成“压缩后的过去”，不要当成普通中间层。"
+      ],
+      "experimentPrompt": "先在图里盯住一个时间步，问自己：如果把前一步删掉，这一步还会得到同样的状态吗？",
+      "takeaways": [
+        "RNN 的输入不是单个样本，而是一串有时间顺序的样本。",
+        "hidden state 是滚动更新的摘要，不是独立预测值。",
+        "理解序列为什么需要 memory，再看公式就不会空。"
+      ],
+      "callout": {
+        "title": "阅读提示",
+        "body": "这一页先别急着追 h_t 的维度。先问自己：如果把序列顺序打乱，任务为什么会立刻变味？这个问题想通，RNN 的动机就稳了。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "intuition",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「状态更新」到底在负责什么。",
+        "cues": [
+          "RNN 的起点不是公式，而是承认序列里的先后顺序本身就是信息。",
+          "RNN 的输入不是单个样本，而是一串有时间顺序的样本。",
+          "hidden state 是滚动更新的摘要，不是独立预测值。",
+          "状态更新：当前状态由当前输入和上一时刻状态共同决定。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "unroll",
+      "title": "2. 把 RNN 展开以后，数据流长什么样",
+      "phase": "forward",
+      "teachingTab": "visual",
+      "summary": "真正看懂 RNN，通常不是盯着一个循环箭头，而是把它沿时间展开。",
+      "paragraphs": [
+        "书上常把 RNN 画成一个带回环箭头的方块，但这对初学者不够直观。更容易理解的方式，是把它展开成一条时间链：每个时间步共享同一组参数，却持有不同的输入和状态。",
+        "一旦把 RNN 展开，你就会发现它更像一段重复执行的程序：读取 x_t，结合 h_{t-1}，得到 h_t，再把 h_t 传给下一步。"
+      ],
+      "sections": [
+        {
+          "title": "一、共享参数",
+          "paragraphs": [
+            "虽然时间步很多，但 W_x、W_h、b 并不会为每个时间步重新学一份。RNN 的能力正来自“同一套更新规则被反复应用”。",
+            "这和卷积里的参数共享有点像，只不过卷积在空间上共享，RNN 在时间上共享。"
+          ]
+        },
+        {
+          "title": "二、数据流与控制流对齐",
+          "paragraphs": [
+            "如果你习惯写代码，可以把 RNN 看成一个 for 循环。每一次循环都会消费一个输入，并更新状态变量 state。",
+            "图上的展开链，其实就是把这段循环显式可视化了。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "展开后的递推",
+          "expression": "h_1 \\rightarrow h_2 \\rightarrow \\cdots \\rightarrow h_T",
+          "explanation": "每一步都把上一步的状态作为自己的输入之一。"
+        },
+        {
+          "label": "时间共享",
+          "expression": "(W_x, W_h, b) \\text{ 在所有 } t \\text{ 上共享}",
+          "explanation": "参数不随时间步变化，变化的是输入和状态。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "顺着时间轴逐步看，不要在多个时间步之间来回跳。",
+        "盯住 h_{t-1} 是如何流入 h_t 的。",
+        "对照 Pseudo Code，把图上的时间展开和循环写法对齐。"
+      ],
+      "experimentPrompt": "切换不同样本，观察同一套参数如何在整条序列上被反复复用。",
+      "takeaways": [],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "visual",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「展开后的递推」到底在负责什么。",
+        "cues": [
+          "真正看懂 RNN，通常不是盯着一个循环箭头，而是把它沿时间展开。",
+          "展开后的递推：每一步都把上一步的状态作为自己的输入之一。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "last-hidden",
+      "title": "3. 为什么最后一个状态能代表整段序列",
+      "phase": "loss",
+      "teachingTab": "why",
+      "summary": "最后一个 hidden state 不是神奇终点，而是整段序列滚动压缩后的结果。",
+      "paragraphs": [
+        "在很多入门任务里，我们会直接把最后一个状态 h_T 拿去做分类或回归。这不是因为最后一步天然更重要，而是因为它已经累计接收了前面所有时间步的信息。",
+        "当然，这种压缩也有代价。如果序列很长，早期信息可能被逐渐稀释，这也是后来 LSTM、GRU 出现的原因。"
+      ],
+      "sections": [
+        {
+          "title": "一、状态像滚动摘要",
+          "paragraphs": [
+            "把 h_t 想成一段不断改写的读书笔记。每读入一个新 token 或新数值，笔记会加入新内容，同时可能淡化旧内容。",
+            "所以 h_T 像是“读完整段以后留下的摘要”，适合用于全局判断。"
+          ]
+        },
+        {
+          "title": "二、什么时候最后状态不够",
+          "paragraphs": [
+            "如果任务需要精确保留很早的信息，单纯依赖 h_T 可能会丢细节。这时你会需要更强的门控机制，或者像 Transformer 那样直接让任意位置互相访问。",
+            "因此这一页的重点不是说 h_T 永远最好，而是理解它为什么在短序列任务里经常够用。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "序列级输出",
+          "expression": "\\hat{y} = \\sigma(W_o h_T + b_o)",
+          "explanation": "任务输出建立在最后状态之上，因此 h_T 必须携带整段序列的信息。"
+        },
+        {
+          "label": "损失",
+          "expression": "L = -[y \\log \\hat{y} + (1-y)\\log(1-\\hat{y})]",
+          "explanation": "最后输出的误差会反向影响整条时间链上的状态更新。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "压缩表示",
+          "body": "最后状态是整段历史的压缩表示，不是最后输入的孤立结果。"
+        },
+        {
+          "title": "信息瓶颈",
+          "body": "所有过去都挤进一个向量，序列越长，越容易丢信息。"
+        }
+      ],
+      "observe": [
+        "看最后一个状态旁边的 prediction，不要只盯单个输入点。",
+        "把整条时间链想成不断改写 summary 的过程。",
+        "思考：如果序列再长一倍，h_T 还可靠吗？"
+      ],
+      "experimentPrompt": "尝试比较短序列和长序列样本，观察最后状态的分类稳定性是否一样。",
+      "takeaways": [
+        "h_T 能代表整段序列，是因为它经历了完整的时间滚动。",
+        "最后状态好用，但也暴露了 RNN 的信息压缩瓶颈。",
+        "理解这一点，才能自然过渡到 LSTM / GRU / Transformer。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "loss",
+        "teachingTab": "why",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「序列级输出」到底在负责什么。",
+        "cues": [
+          "最后一个 hidden state 不是神奇终点，而是整段序列滚动压缩后的结果。",
+          "h_T 能代表整段序列，是因为它经历了完整的时间滚动。",
+          "最后状态好用，但也暴露了 RNN 的信息压缩瓶颈。",
+          "序列级输出：任务输出建立在最后状态之上，因此 h_T 必须携带整段序列的信息。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "bptt",
+      "title": "4. BPTT 是怎么把误差传回过去的",
+      "phase": "backward",
+      "teachingTab": "math",
+      "summary": "RNN 最难的地方常常不在 forward，而在理解误差如何沿时间逆流回去。",
+      "paragraphs": [
+        "Backpropagation Through Time 可以先理解成：把展开后的整条时间链当成一个很深的网络，再按链式法则从后往前求导。",
+        "于是，后面时刻的 loss 不只会影响最后一步参数，也会通过 h_t 对前面很多时间步产生间接影响。"
+      ],
+      "sections": [
+        {
+          "title": "一、反向不是只回一层",
+          "paragraphs": [
+            "在普通前馈网络里，误差往前一层一层传；在 RNN 里，它除了往“层”传，还会往“时间”传。",
+            "这也是为什么梯度消失和梯度爆炸在 RNN 里格外常见：导数被反复乘很多次。"
+          ]
+        },
+        {
+          "title": "二、为什么会难训",
+          "paragraphs": [
+            "如果 \\partial h_t / \\partial h_{t-1} 的范数长期小于 1，早期状态的影响会迅速衰减；长期大于 1，又会引发梯度爆炸。",
+            "所以这一页不只是讲一个求导技巧，而是在解释序列模型的优化难点。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "总梯度",
+          "expression": "\\frac{\\partial L}{\\partial W_h} = \\sum_t \\frac{\\partial L}{\\partial h_t} \\frac{\\partial h_t}{\\partial W_h}",
+          "explanation": "共享参数意味着所有时间步的梯度会累加到同一组参数上。"
+        },
+        {
+          "label": "时间链式法则",
+          "expression": "\\frac{\\partial L}{\\partial h_t} = \\frac{\\partial L}{\\partial h_{t+1}} \\frac{\\partial h_{t+1}}{\\partial h_t} + \\cdots",
+          "explanation": "后续时刻的误差会一路传播回更早的状态。"
+        },
+        {
+          "label": "长期依赖的梯度通路",
+          "expression": "\\frac{\\partial L_k}{\\partial h_t} = \\frac{\\partial L_k}{\\partial h_k} \\prod_{j=t+1}^{k} \\frac{\\partial h_j}{\\partial h_{j-1}}",
+          "explanation": "只要时间链一长，这串连乘就可能把梯度压得很小或放得很大。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "时间维反传",
+          "body": "误差会沿时间链逆流，不只是沿层级逆流。"
+        },
+        {
+          "title": "链式法则放大或缩小",
+          "body": "同一项导数被反复相乘，导致长期依赖难学。"
+        }
+      ],
+      "observe": [
+        "看 backward 阶段时，注意误差箭头是沿时间往回走的。",
+        "对照 Math 卡片，确认共享参数为什么会累计多步梯度。",
+        "如果觉得难，就先固定一个时间步，观察它如何影响前一时刻。"
+      ],
+      "experimentPrompt": "多点几次 step，专门观察 backward 阶段的 trace，问自己：误差最先回到哪里？",
+      "takeaways": [],
+      "callout": {
+        "title": "阅读提示",
+        "body": "先把 BPTT 想成“把循环展开后再做普通反传”，不要一开始就追完整的偏导公式树。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "backward",
+        "teachingTab": "math",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「总梯度」到底在负责什么。",
+        "cues": [
+          "RNN 最难的地方常常不在 forward，而在理解误差如何沿时间逆流回去。",
+          "总梯度：共享参数意味着所有时间步的梯度会累加到同一组参数上。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "gradient-stability",
+      "title": "5. 为什么 RNN 容易梯度消失或爆炸",
+      "phase": "backward",
+      "teachingTab": "why",
+      "summary": "一旦把 BPTT 看成很长的链式乘法，就能自然理解为什么 RNN 对长期依赖不友好。",
+      "paragraphs": [
+        "RNN 的训练难点往往不在写出递推公式，而在于这条时间链会让导数被反复相乘。如果每次相乘都略小于 1，早期信息会迅速衰减；如果略大于 1，误差又可能在反向传播时被放大得失控。",
+        "这就是梯度消失和梯度爆炸。它们不是抽象术语，而是序列越长时你越难让模型同时记住远处信息、又保持数值稳定的根本原因。"
+      ],
+      "sections": [
+        {
+          "title": "一、长期依赖为什么难学",
+          "paragraphs": [
+            "假设某个早期输入对最终输出很重要，那么它的影响必须穿过很多个时间步才会被保留下来。只要每一步都稍微衰减一点，走到最后几乎就看不到了。",
+            "所以“RNN 记不住很久之前的信息”并不是玄学，而是链式法则在长时间轴上的直接结果。"
+          ]
+        },
+        {
+          "title": "二、为什么又会爆炸",
+          "paragraphs": [
+            "如果隐藏状态更新对上一时刻过于敏感，导数长期大于 1，那么一条很长的时间链会把误差指数级放大。",
+            "这时训练表现常常是 loss 剧烈震荡、参数更新不稳定，甚至一步就把模型带偏。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "长期梯度近似",
+          "expression": "\\frac{\\partial h_T}{\\partial h_t} = \\prod_{k=t+1}^{T} \\frac{\\partial h_k}{\\partial h_{k-1}}",
+          "explanation": "越长的时间跨度，对应越长的一串导数连乘。"
+        },
+        {
+          "label": "消失与爆炸",
+          "expression": "\\left\\|\\frac{\\partial h_T}{\\partial h_t}\\right\\| \\ll 1 \\;\\text{or}\\; \\gg 1",
+          "explanation": "范数长期太小会消失，长期太大会爆炸。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "长链相乘",
+          "body": "时间步越多，梯度就越像一串重复乘法，数值更容易失真。"
+        },
+        {
+          "title": "记忆与稳定的矛盾",
+          "body": "想记久一点，就得让信息别快速衰减；但太敏感又会让训练失控。"
+        }
+      ],
+      "observe": [
+        "把 backward 理解成沿时间链的连续乘法。",
+        "想象如果序列翻倍，梯度稳定性会怎样变化。",
+        "把这一页和前一页的 BPTT 连起来读，不要拆开。"
+      ],
+      "experimentPrompt": "观察长一点的序列时 loss 和状态更新是否变得更难稳定，再回头理解梯度问题。",
+      "takeaways": [
+        "梯度问题是时间链过长带来的结构性难点。",
+        "RNN 的长期依赖难学，不是因为它不会记，而是因为它很难稳定地学会记。",
+        "理解这一页，LSTM 的门控设计就不再像魔法。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "backward",
+        "teachingTab": "why",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「长期梯度近似」到底在负责什么。",
+        "cues": [
+          "一旦把 BPTT 看成很长的链式乘法，就能自然理解为什么 RNN 对长期依赖不友好。",
+          "梯度问题是时间链过长带来的结构性难点。",
+          "RNN 的长期依赖难学，不是因为它不会记，而是因为它很难稳定地学会记。",
+          "长期梯度近似：越长的时间跨度，对应越长的一串导数连乘。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "lstm-motivation",
+      "title": "6. LSTM 在补什么，为什么要加门",
+      "phase": "forward",
+      "teachingTab": "intuition",
+      "summary": "LSTM 不是把 RNN 变复杂，而是显式地把“写入、保留、读取”这些动作拆成门控决策。",
+      "paragraphs": [
+        "普通 RNN 只有一个统一的状态更新公式，这意味着模型必须用同一套机制同时解决“该记住什么”和“该忘掉什么”。LSTM 的改进点就在这里：把记忆的读写控制拆出来。",
+        "一旦你把 LSTM 看成一个带门的 memory unit，它就不再是一堆陌生符号，而像一个更会管理长期信息的 RNN。"
+      ],
+      "sections": [
+        {
+          "title": "一、从单一状态到记忆单元",
+          "paragraphs": [
+            "LSTM 引入了 cell state，专门承担更稳定的长期记忆通路。hidden state 则更像当前暴露给外部的工作状态。",
+            "这相当于把“真正长期保存的信息”和“当前时刻对外展示的信息”区分开。"
+          ]
+        },
+        {
+          "title": "二、门控在做什么",
+          "paragraphs": [
+            "forget gate 决定哪些旧信息继续保留，input gate 决定哪些新信息写进去，output gate 决定当前对外暴露多少状态。",
+            "换句话说，LSTM 的关键不是多了几个矩阵，而是多了显式的控制接口。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "遗忘门",
+          "expression": "f_t = \\sigma(W_f [h_{t-1}, x_t] + b_f)",
+          "explanation": "决定旧记忆 c_{t-1} 有多少被保留。"
+        },
+        {
+          "label": "输入门",
+          "expression": "i_t = \\sigma(W_i [h_{t-1}, x_t] + b_i)",
+          "explanation": "决定候选信息有多少被写入 cell state。"
+        },
+        {
+          "label": "输出门",
+          "expression": "o_t = \\sigma(W_o [h_{t-1}, x_t] + b_o)",
+          "explanation": "决定当前时刻向外暴露多少内部记忆。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "显式记忆管理",
+          "body": "LSTM 把保留、写入、输出拆成独立门控，而不是全靠一个状态方程硬扛。"
+        },
+        {
+          "title": "长期通路",
+          "body": "cell state 提供了一条更适合长期保留信息的路径。"
+        }
+      ],
+      "observe": [
+        "先理解 gate 的职责，再去看公式。",
+        "把 LSTM 想成会管理记忆的 RNN，而不是全新的范式。",
+        "重点看 cell state 这条长期通路和普通 hidden state 的区别。"
+      ],
+      "experimentPrompt": "如果你要记住序列开头的一个关键信号，哪一个 gate 最应该帮忙？先凭直觉回答，再看公式。",
+      "takeaways": [],
+      "callout": {
+        "title": "阅读提示",
+        "body": "先把三个 gate 当成“保留 / 写入 / 输出”三个动作，不要一开始追全部矩阵维度。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "intuition",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「遗忘门」到底在负责什么。",
+        "cues": [
+          "LSTM 不是把 RNN 变复杂，而是显式地把“写入、保留、读取”这些动作拆成门控决策。",
+          "遗忘门：决定旧记忆 c_{t-1} 有多少被保留。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "lstm-flow",
+      "title": "7. 一次 LSTM 更新里，门控和状态怎么配合",
+      "phase": "forward",
+      "teachingTab": "math",
+      "summary": "这一页把 LSTM 的门控动作串成完整的数据流，而不是把公式当成独立部件硬背。",
+      "paragraphs": [
+        "LSTM 的关键不在单个 gate，而在这些 gate 如何共同更新 cell state。遗忘门先处理旧记忆，输入门和候选状态一起写入新内容，最后输出门再决定当前 hidden state。",
+        "如果按这个顺序读，你会发现 LSTM 其实是在把“旧记忆保留多少、新内容写多少、对外暴露多少”这三件事线性组织起来。"
+      ],
+      "sections": [
+        {
+          "title": "一、先更新 cell state",
+          "paragraphs": [
+            "cell state 是 LSTM 的长期主线，所以更新顺序围绕它展开：先乘遗忘门，再加输入门控制的新内容。",
+            "这一设计让旧记忆不必每次都被完全重写。"
+          ]
+        },
+        {
+          "title": "二、再得到 hidden state",
+          "paragraphs": [
+            "当前的 hidden state 来源于更新后的 cell state，但还要经过 output gate 控制，这样内部记忆和外部输出就能适度分离。",
+            "因此 h_t 和 c_t 既相关，又不是同一回事。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "候选记忆",
+          "expression": "\\tilde{c}_t = \\tanh(W_c [h_{t-1}, x_t] + b_c)",
+          "explanation": "这是当前时刻准备写入的新内容候选。"
+        },
+        {
+          "label": "记忆更新",
+          "expression": "c_t = f_t \\odot c_{t-1} + i_t \\odot \\tilde{c}_t",
+          "explanation": "旧记忆保留一部分，新候选写入一部分。"
+        },
+        {
+          "label": "隐藏状态输出",
+          "expression": "h_t = o_t \\odot \\tanh(c_t)",
+          "explanation": "对外暴露的是被输出门调制过的当前记忆。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "顺着“forget -> input -> cell update -> output”这条链读。",
+        "不要把 c_t 和 h_t 混为一谈。",
+        "把图上的状态流和公式里的更新顺序一一对齐。"
+      ],
+      "experimentPrompt": "如果 forget gate 接近 1、input gate 接近 0，会发生什么？先用语言解释，再对照公式。",
+      "takeaways": [
+        "LSTM 的核心数据流是先管 memory，再决定对外输出。",
+        "cell state 和 hidden state 的分工，是它比普通 RNN 更稳的关键。",
+        "门控不是为了复杂，而是为了可控。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "math",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「候选记忆」到底在负责什么。",
+        "cues": [
+          "这一页把 LSTM 的门控动作串成完整的数据流，而不是把公式当成独立部件硬背。",
+          "LSTM 的核心数据流是先管 memory，再决定对外输出。",
+          "cell state 和 hidden state 的分工，是它比普通 RNN 更稳的关键。",
+          "候选记忆：这是当前时刻准备写入的新内容候选。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "lab",
+      "title": "8. 动手实验：让 RNN 读一段趋势序列",
+      "phase": "update",
+      "teachingTab": "mistake",
+      "summary": "这一页把 RNN 从“会展开”推进到“会根据序列更新”。",
+      "paragraphs": [
+        "现在你可以把一段 toy sequence 当成小实验，把时间序列里的升降趋势交给模型。你应该同时看三件事：输入序列、hidden state 的滚动变化、最终 prediction 是否变稳。",
+        "如果你能说清楚当前 prediction 为什么受到前几步的影响，而不是只会读最后一步数值，那这章的主线就真正建立起来了。"
+      ],
+      "sections": [],
+      "formulas": [],
+      "principles": [],
+      "observe": [
+        "先看输入序列本身的方向感。",
+        "再看 hidden state 在各时间步的变化。",
+        "最后再回到 loss 和 update，确认模型在朝哪个方向修正。"
+      ],
+      "experimentPrompt": "把自定义 CSV 改成一段先升后降或先降后升的趋势序列，再观察 RNN 的状态链如何响应。",
+      "takeaways": [
+        "实验页的重点是看“状态如何累计”，不是只看最终分类结果。",
+        "RNN 的更新必须结合整条时间链理解。",
+        "如果这里已经感觉信息压缩吃力，后续门控网络的动机就很自然了。"
+      ],
+      "callout": {
+        "title": "实验建议",
+        "body": "先固定一条趋势清晰的序列，慢速点 step，观察 hidden state 是逐步变强、变弱，还是来回震荡。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "update",
+        "teachingTab": "mistake",
+        "traceFilter": "all",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "如果你要用一句话给别人讲这页，你会怎么说？",
+        "cues": [
+          "这一页把 RNN 从“会展开”推进到“会根据序列更新”。",
+          "实验页的重点是看“状态如何累计”，不是只看最终分类结果。",
+          "RNN 的更新必须结合整条时间链理解。"
+        ]
+      },
+      "review": null
+    }
+  ],
+  "review": {
+    "pageTitles": [
+      "1. 为什么序列不能当普通样本看",
+      "2. 把 RNN 展开以后，数据流长什么样",
+      "3. 为什么最后一个状态能代表整段序列",
+      "4. BPTT 是怎么把误差传回过去的",
+      "5. 为什么 RNN 容易梯度消失或爆炸",
+      "6. LSTM 在补什么，为什么要加门",
+      "7. 一次 LSTM 更新里，门控和状态怎么配合",
+      "8. 动手实验：让 RNN 读一段趋势序列"
+    ],
+    "keyIdeas": [
+      "顺序敏感",
+      "滚动记忆",
+      "压缩表示",
+      "信息瓶颈",
+      "时间维反传",
+      "链式法则放大或缩小",
+      "长链相乘",
+      "记忆与稳定的矛盾"
+    ],
+    "formulaLabels": [
+      "状态更新",
+      "序列条件建模",
+      "展开后的递推",
+      "时间共享",
+      "序列级输出",
+      "损失",
+      "总梯度",
+      "时间链式法则"
+    ],
+    "masteryChecks": [
+      "你能否说明 hidden state 为什么能代表过去，又为什么会有信息瓶颈？",
+      "你能否解释 BPTT 和梯度消失 / 爆炸之间的关系？",
+      "你能否讲清楚 LSTM 的三个 gate 分别在控制什么？"
+    ]
+  }
+}

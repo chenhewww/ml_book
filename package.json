@@ -1,0 +1,16 @@
+{
+  "name": "ml-visual-debugger",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "devDependencies": {
+    "pdfjs-dist": "^5.5.207",
+    "playwright": "^1.58.2"
+  },
+  "dependencies": {
+    "katex": "^0.16.40"
+  }
+}

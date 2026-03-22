@@ -1,0 +1,285 @@
+{
+  "id": "linear-regression",
+  "order": 1,
+  "algorithmId": "linear_regression",
+  "title": "第 1 章 线性回归",
+  "subtitle": "从一条线开始，理解 forward、loss 和 gradient descent",
+  "blurb": "这一章是整本书的起点。我们先用最简单的模型，把“输入如何变成输出、误差如何形成、参数为什么会更新”讲透。",
+  "summary": "这一章是整本书的起点。我们先用最简单的模型，把“输入如何变成输出、误差如何形成、参数为什么会更新”讲透。",
+  "pages": [
+    {
+      "id": "opening",
+      "title": "1. 为什么从一条线开始",
+      "phase": "forward",
+      "teachingTab": "intuition",
+      "summary": "先把线性回归看成一把会旋转、会平移、会被数据拉着走的“可学习直尺”。",
+      "paragraphs": [
+        "很多机器学习教材一上来就给公式，但真正重要的是：模型到底在试图做什么。在线性回归里，模型的任务非常朴素，就是用一条线尽量贴近一组散点。",
+        "如果你能把这条线如何靠近数据点看明白，后面的神经网络、卷积网络乃至 Transformer，本质上都只是把这个过程做得更复杂、更强大。"
+      ],
+      "sections": [
+        {
+          "title": "问题设定",
+          "paragraphs": [
+            "我们观察到一组输入 x 和目标 y，希望模型学到一个函数，让输入经过函数后输出尽量接近目标。",
+            "在线性回归里，这个函数被限制成一条直线，因此它是理解参数学习最直接的入口。"
+          ]
+        },
+        {
+          "title": "几何直觉",
+          "paragraphs": [
+            "参数 w 决定斜率，参数 b 决定整体平移。训练过程的本质，就是不断旋转和平移这条线，让它越来越贴近数据。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "模型定义",
+          "expression": "ŷ = w x + b",
+          "explanation": "输入 x 经过线性变换，得到预测值 ŷ。"
+        },
+        {
+          "label": "学习目标",
+          "expression": "让 ŷ 尽量接近 y",
+          "explanation": "训练就是不断调整 w 和 b，让图上的直线贴近真实样本。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "先看图中的线和散点位置关系。",
+        "再看 Data Flow 里的当前节点是什么。",
+        "最后再回头看公式卡片，不要反过来。"
+      ],
+      "experimentPrompt": "试着切换不同数据集，看看同一个模型在不同散点分布下会面临什么样的拟合难度。",
+      "takeaways": [
+        "线性回归先教你看懂“参数如何改变函数形状”。",
+        "训练不是背公式，而是理解线如何被数据拉动。",
+        "图上的几何变化和公式里的更新是同一件事。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "intuition",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「模型定义」到底在负责什么。",
+        "cues": [
+          "先把线性回归看成一把会旋转、会平移、会被数据拉着走的“可学习直尺”。",
+          "线性回归先教你看懂“参数如何改变函数形状”。",
+          "训练不是背公式，而是理解线如何被数据拉动。",
+          "模型定义：输入 x 经过线性变换，得到预测值 ŷ。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "forward-pass",
+      "title": "2. 一次 forward 里发生了什么",
+      "phase": "forward",
+      "teachingTab": "visual",
+      "summary": "这一页重点不是 Loss，而是输入如何顺着数据流走成预测值。",
+      "paragraphs": [
+        "在线性回归里，一次 forward 可以明确地写成一步：ŷ = w x + b。这里的 w 决定 slope，b 决定整条线的上下平移。",
+        "当你点击下一步时，应该把注意力放在图中的当前样本、拟合线以及预测点之间的关系上。"
+      ],
+      "sections": [
+        {
+          "title": "从输入到输出",
+          "paragraphs": [
+            "一个样本只要给出 x，模型就能立刻根据当前参数算出 ŷ。图上看到的是样本在横轴的位置，和这条线在该位置上的高度。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "前向计算",
+          "expression": "ŷ = w x + b",
+          "explanation": "这是线性回归里最核心的一步，也是后续 loss 和 gradient 的起点。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "看当前样本的 x 是如何映射到预测点上的。",
+        "对照 Model Flow 里的 forward 节点。",
+        "再点 Math，确认这一步代入的是哪些数值。"
+      ],
+      "experimentPrompt": "把 Learning Rate 先放一边，只看 forward。问自己：如果 w 更大，图上的线会往哪里转？",
+      "takeaways": [],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "visual",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「前向计算」到底在负责什么。",
+        "cues": [
+          "这一页重点不是 Loss，而是输入如何顺着数据流走成预测值。",
+          "前向计算：这是线性回归里最核心的一步，也是后续 loss 和 gradient 的起点。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "loss",
+      "title": "3. Loss 不是公式，而是“差了多少”",
+      "phase": "loss",
+      "teachingTab": "math",
+      "summary": "Loss 的作用是把“图上差得远不远”变成可以优化的数字。",
+      "paragraphs": [
+        "现在你应该把视线放在真实点和预测点之间的误差上。Loss 不是为了让你背公式，而是为了给模型一个可以比较、可以最小化的目标。",
+        "在图里，误差是距离；在公式里，误差被写成 error 和 loss。把这两件事对齐，是很多初学者第一次真正理解训练过程的关键。"
+      ],
+      "sections": [],
+      "formulas": [
+        {
+          "label": "误差",
+          "expression": "error = ŷ - y",
+          "explanation": "预测值比真实值高还是低，都会先体现在 error 上。"
+        },
+        {
+          "label": "平方损失",
+          "expression": "L = 1/2 (ŷ - y)^2",
+          "explanation": "误差越大，loss 越大，模型越需要调整参数。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "看预测点和真实点之间的距离。",
+        "看 Trace 卡片里 error 是如何代入数值的。",
+        "理解为什么 Loss 越大，说明这一步越“错”。"
+      ],
+      "experimentPrompt": "选一个明显偏离拟合线的样本，观察它的 Loss 为什么会更大。",
+      "takeaways": [],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "loss",
+        "teachingTab": "math",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「误差」到底在负责什么。",
+        "cues": [
+          "Loss 的作用是把“图上差得远不远”变成可以优化的数字。",
+          "误差：预测值比真实值高还是低，都会先体现在 error 上。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "gradient",
+      "title": "4. gradient 在告诉模型往哪边动",
+      "phase": "backward",
+      "teachingTab": "pseudocode",
+      "summary": "真正推动学习的不是 Loss 本身，而是 Loss 对参数的导数。",
+      "paragraphs": [
+        "当 Loss 已经形成以后，模型还不知道自己该往哪里动。gradient 的作用，就是把“错了多少”翻译成“参数应该往什么方向变”。",
+        "不要把 dw、db 看成抽象符号。你应该把它们理解成：如果 slope 或 bias 往某个方向调整，图上的线会更靠近样本还是更远离样本。"
+      ],
+      "sections": [],
+      "formulas": [
+        {
+          "label": "梯度",
+          "expression": "dw = (ŷ - y) x,   db = (ŷ - y)",
+          "explanation": "误差会通过链式法则传到参数上。"
+        }
+      ],
+      "principles": [],
+      "observe": [
+        "看 Pseudo Code 里 backward 这一步。",
+        "确认哪些参数在 Debugger 里被高亮。",
+        "在图上想象：如果参数按当前 gradient 更新，线会往哪里移动。"
+      ],
+      "experimentPrompt": "观察高 Loss 样本对应的 gradient，和低 Loss 样本有什么直觉差异。",
+      "takeaways": [],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "backward",
+        "teachingTab": "pseudocode",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「梯度」到底在负责什么。",
+        "cues": [
+          "真正推动学习的不是 Loss 本身，而是 Loss 对参数的导数。",
+          "梯度：误差会通过链式法则传到参数上。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "lab",
+      "title": "5. 动手实验：让一条线学会拟合",
+      "phase": "update",
+      "teachingTab": "mistake",
+      "summary": "现在进入实验页。这里的目标不是看懂一页，而是自己驱动训练过程。",
+      "paragraphs": [
+        "这一页把前面的直觉、数据流和公式汇总成一个可以操作的实验台。你可以改数据、改 Learning Rate、改样本，并观察更新前后的差异。",
+        "如果你真的能解释清楚为什么这一步更新后拟合线变好了，你就已经掌握了机器学习训练最核心的母题。"
+      ],
+      "sections": [],
+      "formulas": [],
+      "principles": [],
+      "observe": [
+        "重点看 update 阶段的 before / after 差异。",
+        "对比 Focus Guide、图形区和 Trace 卡片。",
+        "如果线变差了，先不要怪公式，先看 Learning Rate 是否过大。"
+      ],
+      "experimentPrompt": "把自定义 CSV 改成一条你自己设计的数据线，再观察模型是否能快速收敛。",
+      "takeaways": [
+        "先比较 update 前后曲线，而不是先看数字。",
+        "Learning Rate 过大时，图上的变化会比公式更早暴露问题。",
+        "如果你能解释一次更新，就能解释后续大部分优化算法。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "update",
+        "teachingTab": "mistake",
+        "traceFilter": "all",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "如果你要用一句话给别人讲这页，你会怎么说？",
+        "cues": [
+          "现在进入实验页。这里的目标不是看懂一页，而是自己驱动训练过程。",
+          "先比较 update 前后曲线，而不是先看数字。",
+          "Learning Rate 过大时，图上的变化会比公式更早暴露问题。"
+        ]
+      },
+      "review": null
+    }
+  ],
+  "review": {
+    "pageTitles": [
+      "1. 为什么从一条线开始",
+      "2. 一次 forward 里发生了什么",
+      "3. Loss 不是公式，而是“差了多少”",
+      "4. gradient 在告诉模型往哪边动",
+      "5. 动手实验：让一条线学会拟合"
+    ],
+    "keyIdeas": [],
+    "formulaLabels": [
+      "模型定义",
+      "学习目标",
+      "前向计算",
+      "误差",
+      "平方损失",
+      "梯度"
+    ],
+    "masteryChecks": [
+      "你能否用图像解释一次 forward、loss、gradient、update？",
+      "你能否说明 learning rate 过大时为什么会震荡？",
+      "你能否把拟合线的变化和参数更新方向对应起来？"
+    ]
+  }
+}

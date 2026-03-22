@@ -1,0 +1,657 @@
+{
+  "id": "transformer",
+  "order": 5,
+  "algorithmId": "transformer_attention",
+  "title": "第 5 章 Transformer",
+  "subtitle": "从 positional encoding、causal mask 到 Transformer block",
+  "blurb": "这一章是整本书里最复杂的一章。目标不是一口气记住所有术语，而是把每个 token 的数据流拆开：它怎么带着位置信息进入网络、怎么提问、怎么匹配、怎么在 mask 约束下聚合、怎么经过 residual、LayerNorm 和 FFN 更新成新的表示。",
+  "summary": "这一章是整本书里最复杂的一章。目标不是一口气记住所有术语，而是把每个 token 的数据流拆开：它怎么带着位置信息进入网络、怎么提问、怎么匹配、怎么在 mask 约束下聚合、怎么经过 residual、LayerNorm 和 FFN 更新成新的表示。",
+  "pages": [
+    {
+      "id": "opening",
+      "title": "1. Transformer 在解决什么问题",
+      "phase": "forward",
+      "teachingTab": "intuition",
+      "summary": "Transformer 的核心不是“大模型”，而是让每个 token 都能动态决定该看谁。",
+      "paragraphs": [
+        "RNN 把信息沿时间一步一步传递，而 Transformer 让每个 token 在当前层直接和其他 token 建立关系。这就是 attention 的根本价值。",
+        "这章的阅读重点不是缩写本身，而是问自己：当前 token 在向谁提问？它为什么会更关注某些 token？",
+        "更进一步说，Transformer 改写了序列建模的默认路径长度。在循环网络里，远距离信息往往要经过很多步中转；而在 self-attention 里，两个位置可以在一层内直接建立联系。"
+      ],
+      "sections": [
+        {
+          "title": "一、从顺序记忆到关系建模",
+          "paragraphs": [
+            "RNN 的信息流是串行的，后面的 token 必须通过前面的隐藏状态间接获得信息；Transformer 允许当前位置直接和其他位置比较。",
+            "这意味着模型不再被迫使用单一路径记忆，而是可以为每一个 query 临时构造自己的上下文。"
+          ]
+        },
+        {
+          "title": "二、阅读这一章的正确方式",
+          "paragraphs": [
+            "不要一上来就试图理解整张 attention 矩阵。先选一个 query token，然后顺着它所在的那一行去看：它关注了谁、为什么关注、最后把谁的信息带回来了。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "注意力分数",
+          "expression": "s_{i,j} = \\frac{q_i^\\top k_j}{\\sqrt{d}}",
+          "explanation": "query 和 key 的相似度决定当前位置对另一 token 的关注强度。"
+        },
+        {
+          "label": "矩阵形式",
+          "expression": "\\mathrm{Attention}(Q,K,V) = \\mathrm{softmax}\\!\\left(\\frac{QK^\\top}{\\sqrt{d}}\\right)V",
+          "explanation": "把所有 token 的匹配和汇总并行写成矩阵乘法，就是 Transformer 的核心计算骨架。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "动态路由",
+          "body": "每个 token 都会临时决定自己该看哪些 token，而不是走一条固定路径。"
+        },
+        {
+          "title": "并行计算",
+          "body": "所有 token 的关系可以在同一层同时计算，这和 RNN 的逐步展开不同。"
+        }
+      ],
+      "observe": [
+        "先找 query token 是谁。",
+        "再看 attention 矩阵里它对应哪一行。",
+        "不要一开始就被多头结构吓住。"
+      ],
+      "experimentPrompt": "先只盯住一个 query token，别同时看所有 token。",
+      "takeaways": [],
+      "callout": {
+        "title": "阅读提示",
+        "body": "这一章不要从“所有 token 一起看”开始。先固定一个 query token，把它当成主角，沿着它所在的那一行看完整个注意力过程。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "intuition",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「注意力分数」到底在负责什么。",
+        "cues": [
+          "Transformer 的核心不是“大模型”，而是让每个 token 都能动态决定该看谁。",
+          "注意力分数：query 和 key 的相似度决定当前位置对另一 token 的关注强度。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "qkv",
+      "title": "2. query / key / value 是怎么配合的",
+      "phase": "forward",
+      "teachingTab": "glossary",
+      "summary": "query 负责提问，key 负责被匹配，value 负责真正提供内容。",
+      "paragraphs": [
+        "很多人卡在 Q、K、V 上，是因为他们一开始就把它们当成抽象矩阵。其实可以先把它们理解成三种角色：query 在问，key 在报位置，value 在给内容。",
+        "当 query 和所有 key 比较以后，就得到一整行 attention weight；再用这些权重去加权 value，才形成当前 token 的新表示。",
+        "所以这一步一定要分两段读：先决定“看谁”，再决定“把谁的内容带回来”。如果把这两件事混在一起，attention 就会一直显得很抽象。"
+      ],
+      "sections": [
+        {
+          "title": "一、Q、K、V 不是三个随意的向量",
+          "paragraphs": [
+            "同一个 token 会被线性投影成 query、key、value 三种视角。query 用来发问，key 用来被比较，value 用来承载真正要带走的信息。"
+          ]
+        },
+        {
+          "title": "二、先比相似度，再混内容",
+          "paragraphs": [
+            "很多初学者误以为 attention matrix 就是输出本身。不是。矩阵只是权重，真正的新表示来自这些权重对 value 的加权和。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "线性投影",
+          "expression": "q_i = W_Q x_i, \\quad k_i = W_K x_i, \\quad v_i = W_V x_i",
+          "explanation": "同一个 token 先被映射成三种角色向量。"
+        },
+        {
+          "label": "注意力权重",
+          "expression": "\\alpha_{i,j} = \\text{softmax}(s_{i,j})",
+          "explanation": "每一行权重之和为 1，表示当前 query 对所有位置的关注分配。"
+        },
+        {
+          "label": "注意力输出",
+          "expression": "o_i = \\sum_j \\alpha_{i,j} v_j",
+          "explanation": "真正的输出不是分数矩阵，而是权重对 value 的加权和。"
+        },
+        {
+          "label": "单头矩阵写法",
+          "expression": "O = \\mathrm{softmax}\\!\\left(\\frac{QK^\\top}{\\sqrt{d}}\\right)V",
+          "explanation": "把一整层所有 token 的 query、key、value 同时写成矩阵，就得到最常见的 attention 公式。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "先匹配，再汇总",
+          "body": "query 和 key 先决定“看谁”，value 再决定“带走什么”。"
+        },
+        {
+          "title": "角色分离",
+          "body": "把提问、匹配、内容拆开，模型更容易学出稳定的关系结构。"
+        }
+      ],
+      "observe": [
+        "看 attention matrix 的当前高亮行。",
+        "再看对应 target token 为什么权重大。",
+        "确认 value 是在最后才被真正混合进输出。"
+      ],
+      "experimentPrompt": "切到 Glossary，把 Q / K / V 的职责先讲清，再回到图上。",
+      "takeaways": [],
+      "callout": {
+        "title": "阅读提示",
+        "body": "如果你总把 attention matrix 当输出，就退回这一页。先把“权重矩阵”和“真正输出向量”分清，再继续看后面的多头和 block。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "glossary",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「线性投影」到底在负责什么。",
+        "cues": [
+          "query 负责提问，key 负责被匹配，value 负责真正提供内容。",
+          "线性投影：同一个 token 先被映射成三种角色向量。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "positional-encoding",
+      "title": "3. positional encoding 为什么是必要的",
+      "phase": "forward",
+      "teachingTab": "why",
+      "summary": "attention 本身只会比较 token 之间的关系，不会天然知道谁在前谁在后，所以位置信息必须被显式注入。",
+      "paragraphs": [
+        "如果只把 token embedding 送进 attention，模型看到的更像一袋彼此可比较的向量，而不是一个有先后顺序的序列。对语言来说，这显然不够，因为“猫追狗”和“狗追猫”包含相同词项，却有不同顺序意义。",
+        "positional encoding 的作用，就是在进入 attention 前给每个位置一个可识别的坐标，让模型在比较 token 时同时感知内容和顺序。"
+      ],
+      "sections": [
+        {
+          "title": "一、为什么 attention 自身不带顺序",
+          "paragraphs": [
+            "self-attention 主要做的是“谁和谁相关”的比较。若不额外提供位置信息，它并不知道两个向量一个来自第 1 个位置，一个来自第 8 个位置。",
+            "所以顺序信息并不会凭空出现，必须通过额外编码进入模型。"
+          ]
+        },
+        {
+          "title": "二、位置不是装饰，而是坐标系",
+          "paragraphs": [
+            "当 embedding 与 positional encoding 相加后，每个 token 的表示都同时携带了“我是谁”和“我在哪”。",
+            "这使 attention 在算相关性时，不只是比较内容相似度，还能学到与相对位置有关的模式。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "输入表示",
+          "expression": "z_i = x_i + p_i",
+          "explanation": "token embedding x_i 和位置编码 p_i 相加，形成送入 block 的输入。"
+        },
+        {
+          "label": "正弦位置编码",
+          "expression": "PE(pos, 2k) = \\sin\\left(\\frac{pos}{10000^{2k/d}}\\right), \\quad PE(pos, 2k+1) = \\cos\\left(\\frac{pos}{10000^{2k/d}}\\right)",
+          "explanation": "不同维度用不同频率编码位置，让模型感知相对与绝对位置信号。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "内容 + 位置",
+          "body": "Transformer 输入的不是纯 token embedding，而是内容表示和位置信息的组合。"
+        },
+        {
+          "title": "顺序显式注入",
+          "body": "顺序不是网络自己猜到的，而是通过 positional encoding 明确提供。"
+        }
+      ],
+      "observe": [
+        "先把位置编码看成给每个 token 加坐标，而不是神秘函数。",
+        "关注输入向量在进入 attention 前已经发生了一次相加。",
+        "对照可视化里 token 和位置的对应关系。"
+      ],
+      "experimentPrompt": "如果去掉所有位置信息，模型还能区分‘先看到谁，后看到谁’吗？先用一句话回答。",
+      "takeaways": [
+        "没有 positional encoding，Transformer 很难可靠区分顺序。",
+        "位置编码不是后期补丁，而是输入表示的一部分。",
+        "这一页是理解自注意力为何能处理序列的前提。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "forward",
+        "teachingTab": "why",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「输入表示」到底在负责什么。",
+        "cues": [
+          "attention 本身只会比较 token 之间的关系，不会天然知道谁在前谁在后，所以位置信息必须被显式注入。",
+          "没有 positional encoding，Transformer 很难可靠区分顺序。",
+          "位置编码不是后期补丁，而是输入表示的一部分。",
+          "输入表示：token embedding x_i 和位置编码 p_i 相加，形成送入 block 的输入。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "causal-mask",
+      "title": "4. causal mask 为什么保证自回归",
+      "phase": "loss",
+      "teachingTab": "visual",
+      "summary": "在生成任务里，当前 token 只能看见过去，不能偷看未来；causal mask 就是在注意力矩阵里硬性写下这条规则。",
+      "paragraphs": [
+        "自回归生成要求模型在预测当前位置时，不能访问未来 token。否则训练和推理时的信息条件就不一致，模型会学到不真实的作弊路径。",
+        "causal mask 的意义，正是把这种“不能偷看未来”的约束直接编码进注意力分配过程，而不是靠模型自己自觉。"
+      ],
+      "sections": [
+        {
+          "title": "一、mask 在屏蔽什么",
+          "paragraphs": [
+            "对位置 i 来说，所有 j > i 的未来位置都应该被屏蔽。这意味着注意力矩阵里未来区域要被压成不可用。",
+            "你在图上看到的灰色或被叉掉的格子，本质上代表“这些位置根本不允许参与权重分配”。"
+          ]
+        },
+        {
+          "title": "二、为什么要在 softmax 前做",
+          "paragraphs": [
+            "只有在 softmax 之前把这些位置压成极小值，它们才会在归一化后接近 0。",
+            "这比事后再截断更干净，因为它从根源上改变了权重分配空间。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "带 mask 的分数",
+          "expression": "\\tilde{s}_{i,j} = s_{i,j} + m_{i,j}",
+          "explanation": "对未来位置，m_{i,j} 会给出极小值，阻止它们进入注意力分配。"
+        },
+        {
+          "label": "带 mask 的权重",
+          "expression": "\\alpha_{i,j} = \\text{softmax}(\\tilde{s}_{i,j})",
+          "explanation": "softmax 之后，被 mask 的未来位置权重会接近 0。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "未来不可见",
+          "body": "自回归模型必须让当前位置只能访问过去和当前信息。"
+        },
+        {
+          "title": "约束先于分配",
+          "body": "mask 先定义可见范围，softmax 再在可见范围内分配注意力。"
+        }
+      ],
+      "observe": [
+        "先看被屏蔽的未来格子，不要跳过它们。",
+        "确认当前 query 只能在左侧历史区域分配权重。",
+        "把 mask 理解成可见性规则，而不只是数值技巧。"
+      ],
+      "experimentPrompt": "固定一个 query token，指出它不能访问哪些位置，再回头解释公式里的 m_{i,j}。",
+      "takeaways": [
+        "causal mask 是自回归成立的结构约束。",
+        "它不是视觉装饰，而是注意力矩阵合法性的定义。",
+        "理解这一页后，生成式 Transformer 的训练逻辑会清楚很多。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "loss",
+        "teachingTab": "visual",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「带 mask 的分数」到底在负责什么。",
+        "cues": [
+          "在生成任务里，当前 token 只能看见过去，不能偷看未来；causal mask 就是在注意力矩阵里硬性写下这条规则。",
+          "causal mask 是自回归成立的结构约束。",
+          "它不是视觉装饰，而是注意力矩阵合法性的定义。",
+          "带 mask 的分数：对未来位置，m_{i,j} 会给出极小值，阻止它们进入注意力分配。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "mask-and-heads",
+      "title": "5. multi-head 为什么不是重复计算",
+      "phase": "loss",
+      "teachingTab": "visual",
+      "summary": "multi-head 的价值不在“多算几遍 attention”，而在让模型并行学习多种关系视角。",
+      "paragraphs": [
+        "如果只有一个 head，模型在同一层里通常只能形成一类主导关系模式。multi-head attention 允许不同 head 在不同投影视角下同时观察同一序列。",
+        "于是，一个 head 可能更偏向局部搭配，另一个 head 更偏向长距离依赖，还有的 head 可能专门盯住结构边界或语义角色。"
+      ],
+      "sections": [
+        {
+          "title": "一、不同 head 在看不同关系",
+          "paragraphs": [
+            "每个 head 都有自己的一组 Q/K/V 投影矩阵，因此同一个 token 在不同 head 中会以不同方式被重新表达。",
+            "这意味着“看谁更相关”这件事，也会因 head 而异。"
+          ]
+        },
+        {
+          "title": "二、为什么最后还要合并",
+          "paragraphs": [
+            "多头不是为了永远分裂，而是先并行提取多种关系，再把这些视角拼接起来交给输出投影整合。",
+            "所以 multi-head 的本质是先分工，再汇总。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "带 mask 的 softmax",
+          "expression": "\\alpha_{i,j} = \\text{softmax}(s_{i,j} + m_{i,j})",
+          "explanation": "被 mask 的位置会被压成极小值，从而不参与注意力分配。"
+        },
+        {
+          "label": "多头拼接",
+          "expression": "\\text{MultiHead}(X) = \\text{Concat}(head_1, \\dots, head_h) W_O",
+          "explanation": "多个 head 的结果会合并，再投影回模型维度。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "因果约束",
+          "body": "mask 先定义哪些位置根本不允许被关注，然后 softmax 再在剩余位置上分配权重。"
+        },
+        {
+          "title": "多视角建模",
+          "body": "不同 head 并不是重复计算，而是在平行地学习不同关系。"
+        }
+      ],
+      "observe": [
+        "先看被 mask 掉的格子，不要跳过它。",
+        "再比较 Head A 和 Head B 的关注差异。",
+        "最后再看 merged output。"
+      ],
+      "experimentPrompt": "选一个 query token，对比两个 head 的 top attention 是否不同。",
+      "takeaways": [],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "loss",
+        "teachingTab": "visual",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「带 mask 的 softmax」到底在负责什么。",
+        "cues": [
+          "multi-head 的价值不在“多算几遍 attention”，而在让模型并行学习多种关系视角。",
+          "带 mask 的 softmax：被 mask 的位置会被压成极小值，从而不参与注意力分配。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "block",
+      "title": "6. 一个 Transformer block 为什么不只有 attention",
+      "phase": "backward",
+      "teachingTab": "why",
+      "summary": "真正的 block 至少还包含 residual、LayerNorm、FFN，这些都不是装饰。",
+      "paragraphs": [
+        "attention 负责让 token 之间交流，但 block 里还包含 residual、LayerNorm 和 FFN。这些部件分别在保留原始信号、稳定数值和增加非线性表达能力。",
+        "如果你只会画 attention matrix，却说不清 residual 和 LayerNorm 在做什么，那么对 Transformer 的理解还是不完整。",
+        "从工程角度看，一个真正能堆深的 block 必须同时解决三件事：信息怎么交流，旧表示怎么保住，数值尺度怎么稳定。attention 只解决了第一件。"
+      ],
+      "sections": [
+        {
+          "title": "一、Residual 在保什么",
+          "paragraphs": [
+            "残差连接让模型在学新表示时，不会直接丢掉原输入。它提供了一条稳定的信息捷径，也让深层优化更容易。"
+          ]
+        },
+        {
+          "title": "二、LayerNorm 在稳什么",
+          "paragraphs": [
+            "LayerNorm 把向量重新拉回稳定尺度，避免不同 token、不同层之间数值漂移过大。"
+          ]
+        },
+        {
+          "title": "三、FFN 在补什么",
+          "paragraphs": [
+            "attention 负责跨 token 交流，FFN 负责对单个 token 做更强的非线性变换。前者建关系，后者提表达。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "残差连接",
+          "expression": "r = x + \\text{Attn}(x)",
+          "explanation": "保留原输入，使深层优化更稳定。"
+        },
+        {
+          "label": "层归一化",
+          "expression": "\\text{LN}(x) = \\gamma \\frac{x - \\mu}{\\sigma} + \\beta",
+          "explanation": "把当前 token 的向量重新规范到稳定尺度。"
+        },
+        {
+          "label": "前馈网络",
+          "expression": "\\text{FFN}(x) = W_2\\, \\text{GELU}(W_1 x + b_1) + b_2",
+          "explanation": "对每个 token 做独立的非线性变换，增强表达能力。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "保留旧信息",
+          "body": "Residual 让 block 学的是增量，而不是完全重写输入。"
+        },
+        {
+          "title": "数值稳定",
+          "body": "LayerNorm 降低层间尺度漂移，让训练更平滑。"
+        },
+        {
+          "title": "表达增强",
+          "body": "FFN 把注意力得到的上下文进一步转成更有判别力的特征。"
+        }
+      ],
+      "observe": [
+        "把 Attn / Res1 / LN1 / FFN / Res2 / LN2 看成一条连续数据流。",
+        "理解 residual 是“保留原输入”，不是简单重复。",
+        "注意 FFN 是逐 token 的非线性变换。"
+      ],
+      "experimentPrompt": "对照 Model Flow，把 block 里每个子层的职责用一句话说出来。",
+      "takeaways": [],
+      "callout": {
+        "title": "阅读提示",
+        "body": "把 block 看成三段式：先让 token 彼此交流，再把旧表示接回来，最后对每个 token 单独加工。这样 residual、LayerNorm 和 FFN 的分工会清楚很多。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "backward",
+        "teachingTab": "why",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「残差连接」到底在负责什么。",
+        "cues": [
+          "真正的 block 至少还包含 residual、LayerNorm、FFN，这些都不是装饰。",
+          "残差连接：保留原输入，使深层优化更稳定。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "ffn-stack",
+      "title": "7. FFN / residual / LayerNorm 为什么必须成组出现",
+      "phase": "backward",
+      "teachingTab": "math",
+      "summary": "这一页把 block 的后半段讲透：为什么 attention 之后还要接 residual、LayerNorm 和 FFN，而且往往要成对出现。",
+      "paragraphs": [
+        "当 attention 把上下文聚合回来后，模型还没有完成这一层的表达更新。它还需要先通过 residual 保住原表示，再借助 LayerNorm 稳住尺度，然后通过 FFN 对每个 token 做更强的非线性加工。",
+        "而在经典 block 中，这样的“残差 + 归一化”不只出现一次：attention 后有一组，FFN 后通常还有一组。这是深层 Transformer 稳定堆叠的重要原因。",
+        "可以把这一页理解成对上一页的补完：上一页解决“各部件分别在做什么”，这一页解决“为什么这些部件必须按固定节奏成组出现”。"
+      ],
+      "sections": [
+        {
+          "title": "一、为什么 attention 后还不够",
+          "paragraphs": [
+            "attention 擅长跨 token 汇聚上下文，但它并不替代逐 token 的特征加工。每个 token 还需要在自己的表示空间里做更复杂的非线性重组。",
+            "所以 FFN 不是多余层，而是 block 内部把上下文转成更强表示的必要步骤。"
+          ]
+        },
+        {
+          "title": "二、为什么 residual 和 LayerNorm 要反复出现",
+          "paragraphs": [
+            "每经过一次较强的可学习变换，表示尺度都可能变化。残差保证旧表示还能保留，LayerNorm 把新旧混合后的向量重新拉回稳定范围。",
+            "这就是为什么一个 block 往往呈现出“Attn -> Add & Norm -> FFN -> Add & Norm”的节奏。"
+          ]
+        }
+      ],
+      "formulas": [
+        {
+          "label": "前馈网络",
+          "expression": "\\text{FFN}(x) = W_2\\, \\phi(W_1 x + b_1) + b_2",
+          "explanation": "对每个 token 单独做非线性变换，增强表示能力。"
+        },
+        {
+          "label": "block 节奏",
+          "expression": "x \\rightarrow \\text{Attn} \\rightarrow \\text{Add\\&Norm} \\rightarrow \\text{FFN} \\rightarrow \\text{Add\\&Norm}",
+          "explanation": "经典 Transformer block 的主要数据流顺序。"
+        },
+        {
+          "label": "第二次残差",
+          "expression": "y = \\text{LN}(r + \\text{FFN}(r))",
+          "explanation": "FFN 后再次通过残差和归一化稳住更新结果。"
+        }
+      ],
+      "principles": [
+        {
+          "title": "后处理不是附属",
+          "body": "attention 之后的 FFN、residual、LayerNorm 决定 block 是否能继续堆深。"
+        },
+        {
+          "title": "稳定优先于花哨",
+          "body": "深层 Transformer 的可训练性，很大程度来自这些稳定结构。"
+        },
+        {
+          "title": "先保留再变换",
+          "body": "先通过残差保住旧表示，再对新表示做逐 token 变换。"
+        }
+      ],
+      "observe": [
+        "顺着 block 后半段一口气读完，不要把 FFN 和残差拆开看。",
+        "关注为什么归一化会在可学习变换之后重复出现。",
+        "把这页和前一页连起来，形成完整 block 视角。"
+      ],
+      "experimentPrompt": "试着不看术语，只按数据流顺序描述一次 block：输入怎么一步步变成新的 token 表示。",
+      "takeaways": [
+        "attention 不是 block 的全部，后半段决定表示能否稳定深化。",
+        "FFN 负责逐 token 非线性加工，residual 和 LayerNorm 负责保真与稳定。",
+        "理解这一页后，完整 Transformer block 才真正闭环。"
+      ],
+      "callout": null,
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "backward",
+        "teachingTab": "math",
+        "traceFilter": "current",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "不用看图，试着解释这页里「前馈网络」到底在负责什么。",
+        "cues": [
+          "这一页把 block 的后半段讲透：为什么 attention 之后还要接 residual、LayerNorm 和 FFN，而且往往要成对出现。",
+          "attention 不是 block 的全部，后半段决定表示能否稳定深化。",
+          "FFN 负责逐 token 非线性加工，residual 和 LayerNorm 负责保真与稳定。",
+          "前馈网络：对每个 token 单独做非线性变换，增强表示能力。"
+        ]
+      },
+      "review": null
+    },
+    {
+      "id": "lab",
+      "title": "8. 动手实验：盯住一个 token，完整走一遍 block",
+      "phase": "update",
+      "teachingTab": "math",
+      "summary": "最后一页不再试图同时理解整个矩阵，而是围绕一个 token 完整走完一遍。",
+      "paragraphs": [
+        "真正的理解通常来自缩小视野。你可以选一个 query token，按 query -> masked weights -> merged output -> residual -> FFN -> update 这条链一路走下去。",
+        "当你能把同一个 token 在图、公式、数据流和术语之间来回切换而不迷失，这一章才算真正读懂。"
+      ],
+      "sections": [],
+      "formulas": [],
+      "principles": [],
+      "observe": [
+        "固定一个 query token，不要频繁切换。",
+        "反复利用 Focus Guide，让视线按 1-2-3 的顺序走。",
+        "如果觉得复杂，就只看当前阶段，不要一次看全部。"
+      ],
+      "experimentPrompt": "改一改自定义 token embedding，观察 attention 权重和输出向量会不会发生明显变化。",
+      "takeaways": [
+        "先固定一个 query token，再谈整个注意力矩阵。",
+        "attention 矩阵不是输出本身，而是输出的权重来源。",
+        "Transformer block 必须作为完整链路理解。"
+      ],
+      "callout": {
+        "title": "阅读顺序建议",
+        "body": "固定一个 query token 后，按“矩阵行 -> context 向量 -> residual / norm -> FFN -> update”这个顺序读，不要来回跳。"
+      },
+      "kind": "",
+      "liveCellPreset": {
+        "phase": "update",
+        "teachingTab": "math",
+        "traceFilter": "all",
+        "sampleStrategy": "interesting-default"
+      },
+      "quiz": {
+        "question": "如果你要用一句话给别人讲这页，你会怎么说？",
+        "cues": [
+          "最后一页不再试图同时理解整个矩阵，而是围绕一个 token 完整走完一遍。",
+          "先固定一个 query token，再谈整个注意力矩阵。",
+          "attention 矩阵不是输出本身，而是输出的权重来源。"
+        ]
+      },
+      "review": null
+    }
+  ],
+  "review": {
+    "pageTitles": [
+      "1. Transformer 在解决什么问题",
+      "2. query / key / value 是怎么配合的",
+      "3. positional encoding 为什么是必要的",
+      "4. causal mask 为什么保证自回归",
+      "5. multi-head 为什么不是重复计算",
+      "6. 一个 Transformer block 为什么不只有 attention",
+      "7. FFN / residual / LayerNorm 为什么必须成组出现",
+      "8. 动手实验：盯住一个 token，完整走一遍 block"
+    ],
+    "keyIdeas": [
+      "动态路由",
+      "并行计算",
+      "先匹配，再汇总",
+      "角色分离",
+      "内容 + 位置",
+      "顺序显式注入",
+      "未来不可见",
+      "约束先于分配"
+    ],
+    "formulaLabels": [
+      "注意力分数",
+      "矩阵形式",
+      "线性投影",
+      "注意力权重",
+      "注意力输出",
+      "单头矩阵写法",
+      "输入表示",
+      "正弦位置编码"
+    ],
+    "masteryChecks": [
+      "你能否说明 positional encoding、causal mask、multi-head 分别解决什么问题？",
+      "你能否把 Q / K / V 的职责讲清楚，而不是只背缩写？",
+      "你能否解释一个完整 block 里 attention、FFN、residual、LayerNorm 的分工？"
+    ]
+  }
+}

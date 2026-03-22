@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Animated ML Book</title>
+    <link rel="stylesheet" href="./node_modules/katex/dist/katex.min.css" />
+    <link rel="stylesheet" href="./src/styles.css" />
+  </head>
+  <body>
+    <div id="pageShell" class="page-shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">Animated ML Book</p>
+          <h1>把机器学习算法读成一本会动的书</h1>
+          <p class="hero-copy">
+            不再从公式堆里找线索，而是按章节阅读：先理解问题，再看数据流，对照公式，最后亲手做实验。
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button id="sidebarToggleButton" class="button ghost sidebar-toggle" type="button" aria-controls="bookSidebar" aria-expanded="true">
+            收起目录与实验台
+          </button>
+          <span class="hero-note">当前 MVP 包含 5 章：线性回归、CNN、RNN、ResNet、Transformer</span>
+        </div>
+      </header>
+
+      <main class="book-layout">
+        <aside id="bookSidebar" class="panel book-sidebar">
+          <details class="sidebar-fold" open>
+            <summary class="panel-header fold-summary">
+              <span class="fold-title">
+                <h2>目录</h2>
+                <small>Book MVP</small>
+              </span>
+              <span class="fold-indicator">折叠</span>
+            </summary>
+            <section class="sidebar-section">
+              <div id="chapterList" class="chapter-list"></div>
+              <div class="sidebar-subtitle">本章页码</div>
+              <div id="pageList" class="page-list"></div>
+            </section>
+          </details>
+
+          <details class="sidebar-fold lab-section" open>
+            <summary class="panel-header fold-summary">
+              <span class="fold-title">
+                <h2>实验台</h2>
+                <small>可折叠</small>
+              </span>
+              <span class="fold-indicator">折叠</span>
+            </summary>
+            <section class="sidebar-section">
+              <div class="control-group">
+                <label for="languageSelect">讲解语言</label>
+                <select id="languageSelect">
+                  <option value="zh">中文</option>
+                  <option value="en">English</option>
+                </select>
+              </div>
+              <div class="control-group">
+                <label for="datasetSelect">内置数据集</label>
+                <select id="datasetSelect"></select>
+              </div>
+              <div class="control-group">
+                <label for="learningRateInput">Learning Rate</label>
+                <input id="learningRateInput" type="range" min="0.01" max="1" step="0.01" />
+                <div id="learningRateValue" class="meta-value"></div>
+              </div>
+              <div class="control-group">
+                <label>预设场景</label>
+                <div id="presetButtons" class="preset-row"></div>
+              </div>
+              <div class="control-group">
+                <label for="sampleSelect">当前跟踪样本</label>
+                <select id="sampleSelect"></select>
+              </div>
+              <div class="control-group">
+                <label>导出</label>
+                <div class="export-row">
+                  <button id="downloadMermaidButton" class="button ghost" type="button">导出 Mermaid</button>
+                </div>
+              </div>
+              <div class="control-group">
+                <label for="customDatasetInput">自定义数据 CSV</label>
+                <textarea id="customDatasetInput" class="dataset-input" rows="9" spellcheck="false"></textarea>
+                <div id="customDatasetHint" class="control-footnote"></div>
+                <div class="export-row">
+                  <button id="importDatasetButton" class="button primary" type="button">导入当前编辑内容</button>
+                  <button id="resetDatasetButton" class="button ghost" type="button">恢复为当前内置数据</button>
+                </div>
+              </div>
+              <div class="control-footnote">
+                这里显示的是当前正在使用或即将导入的数据。改完就导入，不需要再到别处确认。
+              </div>
+              <div id="backendStatus" class="status-banner">正在连接后端...</div>
+            </section>
+          </details>
+        </aside>
+
+        <section class="reader-column">
+          <article class="panel chapter-panel">
+            <div id="chapterHero" class="chapter-hero"></div>
+            <div id="readerProgress" class="reader-progress"></div>
+            <div id="chapterBody" class="chapter-body"></div>
+            <div class="reader-nav">
+              <button id="pagePrevButton" class="button ghost" type="button">上一页</button>
+              <button id="pageNextButton" class="button primary" type="button">下一页</button>
+            </div>
+          </article>
+
+          <section id="storyGrid" class="story-grid">
+            <section id="plotPanel" class="panel viz-story-panel">
+              <div class="panel-header">
+                <h2>运行单元 / Live Cell</h2>
+                <span id="datasetMeta" class="pill"></span>
+              </div>
+              <div class="live-workbench">
+                <div class="live-plot-column">
+                  <div id="focusGuide" class="focus-guide"></div>
+                  <svg id="plot" viewBox="0 0 640 520" class="plot"></svg>
+                  <div class="viz-controls">
+                    <div class="control-row viz-control-row">
+                      <button id="prevButton" class="button ghost" type="button">上一步</button>
+                      <button id="nextButton" class="button primary" type="button">下一步</button>
+                      <button id="playPauseButton" class="button primary" type="button">自动播放</button>
+                      <button id="resetButton" class="button ghost" type="button">回到本页起点</button>
+                    </div>
+                    <div class="timeline viz-timeline">
+                      <div class="timeline-head">
+                        <span>步骤</span>
+                        <span id="stepCounter"></span>
+                      </div>
+                      <input id="timelineRange" type="range" min="0" max="0" step="1" value="0" />
+                    </div>
+                    <div class="viz-hint">键盘：← / → 控制步骤，Space 播放暂停，PageUp / PageDown 翻书页</div>
+                  </div>
+                </div>
+                <aside id="liveFormulaBoard" class="live-formula-board"></aside>
+              </div>
+            </section>
+
+            <section class="story-appendix">
+              <details id="flowPanel" class="panel story-fold flow-story-panel" open>
+                <summary class="panel-header fold-summary story-summary">
+                  <span class="fold-title">
+                    <h2>数据流 / Model Flow</h2>
+                    <small>正文联动</small>
+                  </span>
+                  <span class="fold-meta">
+                    <span id="phaseBadge" class="pill accent"></span>
+                    <span class="fold-indicator">折叠</span>
+                  </span>
+                </summary>
+                <div class="story-fold-body">
+                  <div id="flowDiagram" class="flow-diagram"></div>
+                  <div class="explanation-block">
+                    <div class="explanation-header">
+                      <h3>本页讲解</h3>
+                      <div id="teachingTabs" class="teaching-tabs">
+                        <button class="button teaching-tab active" data-teaching-tab="intuition" type="button">直觉</button>
+                        <button class="button teaching-tab" data-teaching-tab="why" type="button">为什么</button>
+                        <button class="button teaching-tab" data-teaching-tab="visual" type="button">看图重点</button>
+                        <button class="button teaching-tab" data-teaching-tab="glossary" type="button">术语</button>
+                        <button class="button teaching-tab" data-teaching-tab="pseudocode" type="button">Pseudo Code</button>
+                        <button class="button teaching-tab" data-teaching-tab="math" type="button">Math</button>
+                        <button class="button teaching-tab" data-teaching-tab="mistake" type="button">常见误区</button>
+                      </div>
+                    </div>
+                    <div id="teachingPanel" class="teaching-panel"></div>
+                  </div>
+                </div>
+              </details>
+
+              <details id="tracePanel" class="panel story-fold trace-story-panel trace-shell">
+                <summary class="panel-header trace-header fold-summary story-summary">
+                  <span class="fold-title">
+                    <h2>公式推导 Trace</h2>
+                    <small>与当前步骤同步</small>
+                  </span>
+                  <span class="fold-meta">
+                    <span class="pill">公式 + 代入 + 结果</span>
+                    <span class="fold-indicator">展开</span>
+                  </span>
+                </summary>
+                <div class="story-fold-body">
+                  <div class="trace-actions">
+                    <div id="traceFilterButtons" class="trace-filter-row">
+                      <button class="button trace-filter active" data-trace-filter="all" type="button">全部步骤</button>
+                      <button class="button trace-filter" data-trace-filter="current" type="button">仅当前阶段</button>
+                    </div>
+                    <button id="traceToggleButton" class="button ghost trace-toggle" type="button">折叠</button>
+                  </div>
+                  <div id="traceList" class="trace-list"></div>
+                </div>
+              </details>
+
+              <details id="statsPanel" class="panel story-fold stats-story-panel">
+                <summary class="panel-header fold-summary story-summary">
+                  <span class="fold-title">
+                    <h2>调试器</h2>
+                    <small>参数与损失状态</small>
+                  </span>
+                  <span class="fold-indicator">展开</span>
+                </summary>
+                <div class="story-fold-body">
+                  <div id="statsGrid" class="stat-grid"></div>
+                  <div class="metric-card">
+                    <div class="metric-row">
+                      <span>Prediction</span>
+                      <strong id="predictionValue"></strong>
+                    </div>
+                    <div class="metric-row">
+                      <span>Target</span>
+                      <strong id="targetValue"></strong>
+                    </div>
+                    <div class="metric-row">
+                      <span>Loss</span>
+                      <strong id="lossValue"></strong>
+                    </div>
+                  </div>
+                </div>
+              </details>
+            </section>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

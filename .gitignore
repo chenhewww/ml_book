@@ -1,0 +1,10 @@
+node_modules/
+.idea/
+
+artifacts-*.png
+artifacts-*.jpg
+artifacts-*.jpeg
+artifacts-*.webp
+artifacts-*.json
+
+*.log
