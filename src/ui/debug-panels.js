@@ -27,26 +27,89 @@ function getVisualFocusLabel(spotlight) {
   }[spotlight] ?? "当前高亮对象";
 }
 
-export function renderFlow(container, snapshot, selectedTraceIndex = null) {
+function getFlowStatusLabel(stepState, language) {
+  if (stepState === "current") {
+    return language === "zh" ? "当前步骤" : "Current";
+  }
+  if (stepState === "done") {
+    return language === "zh" ? "前情步骤" : "Done";
+  }
+  return language === "zh" ? "后续步骤" : "Next";
+}
+
+function getTraceStatusLabel(status, language) {
+  const zh = {
+    done: "前情",
+    current: "当前",
+    upcoming: "后续",
+  };
+  const en = {
+    done: "Done",
+    current: "Current",
+    upcoming: "Next",
+  };
+  return (language === "zh" ? zh : en)[status] ?? (language === "zh" ? "步骤" : "Step");
+}
+
+function getCurrentTraceIndex(snapshot) {
+  const traces = snapshot?.calculationTrace ?? [];
+  const currentIndex = traces.findIndex((trace) => trace.status === "current");
+  return currentIndex === -1 ? 0 : currentIndex;
+}
+
+function getFlowTraceIndex(node, index) {
+  return Number.isInteger(node?.traceIndex) ? node.traceIndex : index;
+}
+
+function getTraceIndexBySpotlight(snapshot, spotlight) {
+  if (!spotlight) {
+    return getCurrentTraceIndex(snapshot);
+  }
+  const traces = snapshot?.calculationTrace ?? [];
+  const matchIndex = traces.findIndex((trace) => trace.spotlight === spotlight);
+  return matchIndex === -1 ? getCurrentTraceIndex(snapshot) : matchIndex;
+}
+
+export function renderFlow(container, snapshot, selectedTraceIndex = null, language = "zh") {
+  const currentTraceIndex = getCurrentTraceIndex(snapshot);
+  const currentSpotlight = (snapshot?.calculationTrace ?? [])[currentTraceIndex]?.spotlight ?? null;
+  const linkedTraceIndex = Number.isInteger(selectedTraceIndex) ? selectedTraceIndex : getTraceIndexBySpotlight(snapshot, currentSpotlight);
   container.innerHTML = snapshot.modelFlow
-    .map(
-      (node, index) => `
-        <button class="flow-node${node.active ? " active" : ""}${selectedTraceIndex === index ? " linked" : ""}" data-flow-index="${index}" type="button">
-          <strong>${node.title}</strong>
-          <small>${node.detail}</small>
+    .map((node, index) => {
+      const traceIndex = getFlowTraceIndex(node, index);
+      const stepState = traceIndex < currentTraceIndex ? "done" : traceIndex === currentTraceIndex ? "current" : "upcoming";
+      return `
+        <button class="flow-node ${stepState}${linkedTraceIndex === traceIndex ? " linked" : ""}" data-flow-index="${index}" data-trace-index="${traceIndex}" type="button">
+          <span class="flow-node-step">${index + 1}</span>
+          <div class="flow-node-copy">
+            <div class="flow-node-meta">
+              <span class="flow-node-status">${getFlowStatusLabel(stepState, language)}</span>
+            </div>
+            <strong>${node.title}</strong>
+            <small>${node.detail}</small>
+          </div>
         </button>
-      `
-    )
+      `;
+    })
     .join("");
 }
 
-export function renderStats(container, snapshot, spotlight) {
+export function renderStats(container, snapshot, spotlight, language = "zh") {
   container.innerHTML = Object.entries(snapshot.params)
     .map(
       ([key, value]) => `
         <div class="stat-card${isStatActive(key, spotlight) ? " active" : ""}">
           <span>${formatKey(key)}</span>
           <strong>${value}</strong>
+          <small>${
+            isStatActive(key, spotlight)
+              ? language === "zh"
+                ? "这一项正在影响当前页的高亮变化"
+                : "This value is tied to the current highlight."
+              : language === "zh"
+                ? "作为背景状态保留在这里"
+                : "Shown here as supporting state."
+          }</small>
         </div>
       `
     )
@@ -79,6 +142,10 @@ export function renderTrace({
 
       return `
         <button class="trace-card ${trace.status}${index === selectedTraceIndex ? " active" : ""}${isVisible ? "" : " filtered-out"}" data-trace-index="${index}" type="button">
+          <div class="trace-card-meta">
+            <span class="trace-card-step">${index + 1}</span>
+            <span class="trace-card-status">${getTraceStatusLabel(trace.status, language)}</span>
+          </div>
           <h4>${title}</h4>
           <div class="trace-formula">${renderMathExpression(formula, { displayMode: true })}</div>
         </button>
@@ -93,11 +160,15 @@ export function renderTrace({
 }
 
 export function renderFocusGuide(container, snapshot, selectedTrace, language, linkedSymbol = null, visualFocus = null) {
-  const activeFlow = snapshot.modelFlow?.find((node) => node.active) ?? snapshot.modelFlow?.[0];
+  const traceIndex = getTraceIndexBySpotlight(snapshot, selectedTrace?.spotlight ?? null);
+  const activeFlow =
+    snapshot.modelFlow?.find((node, index) => getFlowTraceIndex(node, index) === traceIndex) ??
+    snapshot.modelFlow?.find((node) => node.active) ??
+    snapshot.modelFlow?.[0];
   const traceTitle =
     language === "zh"
       ? selectedTrace?.titleZh || selectedTrace?.title || "当前公式"
-      : selectedTrace?.title || selectedTrace?.titleZh || "Current formula";
+      : selectedTrace?.title || selectedTrace?.titleZh || "Current equation";
   const traceFormula =
     language === "zh"
       ? selectedTrace?.formulaZh || selectedTrace?.formula || ""

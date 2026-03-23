@@ -5,6 +5,8 @@ const DEFAULT_LIVE_CELL_PRESET = {
   sampleStrategy: "interesting-default",
 };
 
+const DEFAULT_READING_MODE = "book-first";
+
 function isPlainObject(value) {
   return value && typeof value === "object" && !Array.isArray(value);
 }
@@ -15,6 +17,98 @@ function ensureString(value, fallback = "") {
 
 function ensureStringArray(value) {
   return Array.isArray(value) ? value.filter((item) => typeof item === "string") : [];
+}
+
+function ensureNumberArray(value) {
+  return Array.isArray(value) ? value.filter((item) => Number.isFinite(item)).map((item) => Number(item)) : [];
+}
+
+function uniqueBy(values, keySelector) {
+  const seen = new Set();
+  return values.filter((value) => {
+    const key = keySelector(value);
+    if (!key || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+}
+
+function titleToQuestion(title) {
+  const stem = ensureString(title).replace(/^\d+\.\s*/, "").trim();
+  if (!stem) {
+    return "这页最值得先问的问题是什么？";
+  }
+  return /[？?]$/.test(stem) ? stem : `${stem}？`;
+}
+
+function deriveWalkthrough(page) {
+  const sectionTitles = (Array.isArray(page.sections) ? page.sections : [])
+    .map((section) => ensureString(section?.title))
+    .filter(Boolean);
+  return uniqueBy([...ensureStringArray(page.observe), ...sectionTitles], (item) => item).slice(0, 4);
+}
+
+function deriveVocabulary(page) {
+  const entries = [
+    ...(Array.isArray(page.formulas)
+      ? page.formulas.map((formula) => ({
+          term: ensureString(formula?.label),
+          meaning: ensureString(formula?.explanation),
+        }))
+      : []),
+    ...(Array.isArray(page.principles)
+      ? page.principles.map((principle) => ({
+          term: ensureString(principle?.title),
+          meaning: ensureString(principle?.body),
+        }))
+      : []),
+  ];
+
+  return uniqueBy(entries, (entry) => entry.term).filter((entry) => entry.term).slice(0, 6);
+}
+
+function deriveMisconceptions(page) {
+  const title = ensureString(page.title).replace(/^\d+\.\s*/, "").trim();
+  const items = [];
+
+  if (page.callout?.body) {
+    items.push({
+      myth: title ? `只要记住「${title}」的定义就够了。` : "只要背定义就够了。",
+      correction: ensureString(page.callout.body),
+    });
+  }
+
+  if (Array.isArray(page.takeaways) && page.takeaways[0]) {
+    items.push({
+      myth: "只看最终结果，不需要把图和公式对应起来。",
+      correction: ensureString(page.takeaways[0]),
+    });
+  }
+
+  return items.slice(0, 2);
+}
+
+function deriveFigureCaption(page) {
+  const title = ensureString(page.title).replace(/^\d+\.\s*/, "").trim();
+  const focus = ensureStringArray(page.observe)[0] || ensureString(page.summary) || ensureString(page.experimentPrompt);
+  if (!title) {
+    return focus;
+  }
+  return focus ? `${title}：${focus}` : title;
+}
+
+function deriveDiagram(page) {
+  return {
+    focus: ensureStringArray(page.observe)[0] || ensureString(page.summary),
+    caption: deriveFigureCaption(page),
+    sourcePages: [],
+  };
+}
+
+function deriveFurtherInspection(page) {
+  return uniqueBy([...ensureStringArray(page.observe), ensureString(page.experimentPrompt)].filter(Boolean), (item) => item).slice(0, 5);
 }
 
 function normalizeFormula(formula) {
@@ -58,6 +152,84 @@ function normalizeCallout(callout) {
   };
 }
 
+function normalizeVocabularyEntry(entry) {
+  if (typeof entry === "string") {
+    return {
+      term: entry,
+      meaning: "",
+    };
+  }
+  if (!isPlainObject(entry)) {
+    return null;
+  }
+  return {
+    term: ensureString(entry.term),
+    meaning: ensureString(entry.meaning),
+  };
+}
+
+function normalizeMisconception(entry) {
+  if (!isPlainObject(entry)) {
+    return null;
+  }
+  return {
+    myth: ensureString(entry.myth),
+    correction: ensureString(entry.correction),
+  };
+}
+
+function normalizeDiagram(diagram, page) {
+  if (!isPlainObject(diagram)) {
+    return deriveDiagram(page);
+  }
+  return {
+    focus: ensureString(diagram.focus, ensureStringArray(page.observe)[0] || ensureString(page.summary)),
+    caption: ensureString(diagram.caption, deriveFigureCaption(page)),
+    sourcePages: ensureNumberArray(diagram.sourcePages),
+  };
+}
+
+function normalizeSourceExcerpt(excerpt) {
+  if (!isPlainObject(excerpt)) {
+    return null;
+  }
+  return {
+    page: Number.isFinite(excerpt.page) ? Number(excerpt.page) : null,
+    text: ensureString(excerpt.text),
+  };
+}
+
+function normalizeSourceMapping(mapping) {
+  if (!isPlainObject(mapping)) {
+    return null;
+  }
+  return {
+    id: ensureString(mapping.id),
+    title: ensureString(mapping.title),
+    pages: ensureNumberArray(mapping.pages),
+    rationale: ensureString(mapping.rationale),
+  };
+}
+
+function normalizeSourceNotes(sourceNotes) {
+  if (!isPlainObject(sourceNotes)) {
+    return null;
+  }
+  return {
+    sourcePdf: ensureString(sourceNotes.sourcePdf),
+    sourceTitle: ensureString(sourceNotes.sourceTitle),
+    sourceFile: ensureString(sourceNotes.sourceFile),
+    pages: ensureNumberArray(sourceNotes.pages),
+    chapterPages: ensureNumberArray(sourceNotes.chapterPages),
+    chapterPageList: ensureString(sourceNotes.chapterPageList),
+    rationale: ensureString(sourceNotes.rationale),
+    excerpts: (Array.isArray(sourceNotes.excerpts) ? sourceNotes.excerpts : []).map(normalizeSourceExcerpt).filter(Boolean),
+    sectionMappings: (Array.isArray(sourceNotes.sectionMappings) ? sourceNotes.sectionMappings : [])
+      .map(normalizeSourceMapping)
+      .filter(Boolean),
+  };
+}
+
 function normalizeQuiz(quiz, page) {
   if (isPlainObject(quiz)) {
     return {
@@ -67,7 +239,7 @@ function normalizeQuiz(quiz, page) {
   }
 
   const cues = [
-    ensureString(page.summary),
+    ensureString(page.coreIdea, ensureString(page.summary)),
     ...ensureStringArray(page.takeaways).slice(0, 2),
     ...(Array.isArray(page.formulas)
       ? page.formulas.slice(0, 1).map((formula) => `${ensureString(formula.label)}：${ensureString(formula.explanation)}`)
@@ -77,8 +249,8 @@ function normalizeQuiz(quiz, page) {
   const question = Array.isArray(page.formulas) && page.formulas.length
     ? `不用看图，试着解释这页里「${ensureString(page.formulas[0].label)}」到底在负责什么。`
     : Array.isArray(page.principles) && page.principles.length
-      ? `这页最重要的设计原则是什么，它解决了什么问题？`
-      : `如果你要用一句话给别人讲这页，你会怎么说？`;
+      ? "这页最重要的设计原则是什么，它解决了什么问题？"
+      : "如果你要用一句话给别人讲这页，你会怎么说？";
 
   return {
     question,
@@ -172,11 +344,30 @@ function normalizePage(page, chapterId, pageIndex) {
     takeaways: ensureStringArray(page.takeaways),
     callout: normalizeCallout(page.callout),
     kind: ensureString(page.kind),
+    readingMode: ensureString(page.readingMode, DEFAULT_READING_MODE),
+    openingQuestion: ensureString(page.openingQuestion, titleToQuestion(page.title)),
+    coreIdea: ensureString(page.coreIdea, ensureString(page.summary)),
+    figureCaption: ensureString(page.figureCaption, deriveFigureCaption(page)),
+    walkthrough: ensureStringArray(page.walkthrough).length ? ensureStringArray(page.walkthrough) : deriveWalkthrough(page),
+    vocabulary: (Array.isArray(page.vocabulary) ? page.vocabulary : []).map(normalizeVocabularyEntry).filter(Boolean),
+    misconceptions: (Array.isArray(page.misconceptions) ? page.misconceptions : []).map(normalizeMisconception).filter(Boolean),
+    diagram: null,
+    furtherInspection: ensureStringArray(page.furtherInspection).length
+      ? ensureStringArray(page.furtherInspection)
+      : deriveFurtherInspection(page),
+    sourceNotes: normalizeSourceNotes(page.sourceNotes),
     liveCellPreset: normalizeLiveCellPreset(page.liveCellPreset, page),
     quiz: null,
     review: isPlainObject(page.review) ? page.review : null,
   };
 
+  if (!normalized.vocabulary.length) {
+    normalized.vocabulary = deriveVocabulary(page);
+  }
+  if (!normalized.misconceptions.length) {
+    normalized.misconceptions = deriveMisconceptions(page);
+  }
+  normalized.diagram = normalizeDiagram(page.diagram, normalized);
   normalized.quiz = normalizeQuiz(page.quiz, normalized);
   return normalized;
 }
@@ -194,6 +385,8 @@ export function normalizeChapter(chapter, chapterIndex = 0) {
     subtitle: ensureString(chapter.subtitle),
     blurb: ensureString(chapter.blurb),
     summary: ensureString(chapter.summary, ensureString(chapter.blurb)),
+    readingMode: ensureString(chapter.readingMode, DEFAULT_READING_MODE),
+    sourceNotes: normalizeSourceNotes(chapter.sourceNotes),
     pages: (Array.isArray(chapter.pages) ? chapter.pages : []).map((page, pageIndex) => normalizePage(page, ensureString(chapter.id), pageIndex)),
     review: isPlainObject(chapter.review) ? chapter.review : null,
   };
@@ -227,23 +420,29 @@ export function validateChapter(chapter) {
       pageIds.add(page.id);
     }
 
-    ["title", "summary", "experimentPrompt"].forEach((field) => {
+    ["title", "summary", "experimentPrompt", "readingMode", "openingQuestion", "coreIdea", "figureCaption"].forEach((field) => {
       if (typeof page[field] !== "string") {
         errors.push(`chapter ${chapter.id} page ${page.id} requires string field ${field}`);
       }
     });
 
-    ["paragraphs", "sections", "formulas", "principles", "observe"].forEach((field) => {
+    ["paragraphs", "sections", "formulas", "principles", "observe", "walkthrough", "vocabulary", "misconceptions", "furtherInspection"].forEach((field) => {
       if (!Array.isArray(page[field])) {
         errors.push(`chapter ${chapter.id} page ${page.id} requires array field ${field}`);
       }
     });
 
+    if (!isPlainObject(page.diagram)) {
+      errors.push(`chapter ${chapter.id} page ${page.id} requires diagram object`);
+    }
     if (!isPlainObject(page.liveCellPreset)) {
       errors.push(`chapter ${chapter.id} page ${page.id} requires liveCellPreset object`);
     }
     if (!isPlainObject(page.quiz)) {
       errors.push(`chapter ${chapter.id} page ${page.id} requires quiz object`);
+    }
+    if (page.sourceNotes !== null && !isPlainObject(page.sourceNotes)) {
+      errors.push(`chapter ${chapter.id} page ${page.id} requires sourceNotes object or null`);
     }
   });
 
@@ -254,4 +453,4 @@ export function normalizeChapters(chapters) {
   return chapters.map((chapter, index) => normalizeChapter(chapter, index));
 }
 
-export { DEFAULT_LIVE_CELL_PRESET, buildChapterReview };
+export { DEFAULT_LIVE_CELL_PRESET, DEFAULT_READING_MODE, buildChapterReview };

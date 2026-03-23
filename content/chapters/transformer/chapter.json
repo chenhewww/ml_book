@@ -461,7 +461,7 @@
         "理解 residual 是“保留原输入”，不是简单重复。",
         "注意 FFN 是逐 token 的非线性变换。"
       ],
-      "experimentPrompt": "对照 Model Flow，把 block 里每个子层的职责用一句话说出来。",
+      "experimentPrompt": "对照数据流图，把 block 里每个子层的职责用一句话说出来。",
       "takeaways": [],
       "callout": {
         "title": "阅读提示",
@@ -586,7 +586,7 @@
       "principles": [],
       "observe": [
         "固定一个 query token，不要频繁切换。",
-        "反复利用 Focus Guide，让视线按 1-2-3 的顺序走。",
+        "反复利用阅读顺序提示，让视线按 1-2-3 的顺序走。",
         "如果觉得复杂，就只看当前阶段，不要一次看全部。"
       ],
       "experimentPrompt": "改一改自定义 token embedding，观察 attention 权重和输出向量会不会发生明显变化。",

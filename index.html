@@ -19,7 +19,7 @@
         </div>
         <div class="hero-actions">
           <button id="sidebarToggleButton" class="button ghost sidebar-toggle" type="button" aria-controls="bookSidebar" aria-expanded="true">
-            收起目录与实验台
+            收起目录
           </button>
           <span class="hero-note">当前 MVP 包含 5 章：线性回归、CNN、RNN、ResNet、Transformer</span>
         </div>
@@ -41,61 +41,6 @@
               <div id="pageList" class="page-list"></div>
             </section>
           </details>
-
-          <details class="sidebar-fold lab-section" open>
-            <summary class="panel-header fold-summary">
-              <span class="fold-title">
-                <h2>实验台</h2>
-                <small>可折叠</small>
-              </span>
-              <span class="fold-indicator">折叠</span>
-            </summary>
-            <section class="sidebar-section">
-              <div class="control-group">
-                <label for="languageSelect">讲解语言</label>
-                <select id="languageSelect">
-                  <option value="zh">中文</option>
-                  <option value="en">English</option>
-                </select>
-              </div>
-              <div class="control-group">
-                <label for="datasetSelect">内置数据集</label>
-                <select id="datasetSelect"></select>
-              </div>
-              <div class="control-group">
-                <label for="learningRateInput">Learning Rate</label>
-                <input id="learningRateInput" type="range" min="0.01" max="1" step="0.01" />
-                <div id="learningRateValue" class="meta-value"></div>
-              </div>
-              <div class="control-group">
-                <label>预设场景</label>
-                <div id="presetButtons" class="preset-row"></div>
-              </div>
-              <div class="control-group">
-                <label for="sampleSelect">当前跟踪样本</label>
-                <select id="sampleSelect"></select>
-              </div>
-              <div class="control-group">
-                <label>导出</label>
-                <div class="export-row">
-                  <button id="downloadMermaidButton" class="button ghost" type="button">导出 Mermaid</button>
-                </div>
-              </div>
-              <div class="control-group">
-                <label for="customDatasetInput">自定义数据 CSV</label>
-                <textarea id="customDatasetInput" class="dataset-input" rows="9" spellcheck="false"></textarea>
-                <div id="customDatasetHint" class="control-footnote"></div>
-                <div class="export-row">
-                  <button id="importDatasetButton" class="button primary" type="button">导入当前编辑内容</button>
-                  <button id="resetDatasetButton" class="button ghost" type="button">恢复为当前内置数据</button>
-                </div>
-              </div>
-              <div class="control-footnote">
-                这里显示的是当前正在使用或即将导入的数据。改完就导入，不需要再到别处确认。
-              </div>
-              <div id="backendStatus" class="status-banner">正在连接后端...</div>
-            </section>
-          </details>
         </aside>
 
         <section class="reader-column">
@@ -103,128 +48,199 @@
             <div id="chapterHero" class="chapter-hero"></div>
             <div id="readerProgress" class="reader-progress"></div>
             <div id="chapterBody" class="chapter-body"></div>
-            <div class="reader-nav">
-              <button id="pagePrevButton" class="button ghost" type="button">上一页</button>
-              <button id="pageNextButton" class="button primary" type="button">下一页</button>
-            </div>
           </article>
-
-          <section id="storyGrid" class="story-grid">
-            <section id="plotPanel" class="panel viz-story-panel">
-              <div class="panel-header">
-                <h2>运行单元 / Live Cell</h2>
-                <span id="datasetMeta" class="pill"></span>
-              </div>
-              <div class="live-workbench">
-                <div class="live-plot-column">
-                  <div id="focusGuide" class="focus-guide"></div>
-                  <svg id="plot" viewBox="0 0 640 520" class="plot"></svg>
-                  <div class="viz-controls">
-                    <div class="control-row viz-control-row">
-                      <button id="prevButton" class="button ghost" type="button">上一步</button>
-                      <button id="nextButton" class="button primary" type="button">下一步</button>
-                      <button id="playPauseButton" class="button primary" type="button">自动播放</button>
-                      <button id="resetButton" class="button ghost" type="button">回到本页起点</button>
-                    </div>
-                    <div class="timeline viz-timeline">
-                      <div class="timeline-head">
-                        <span>步骤</span>
-                        <span id="stepCounter"></span>
-                      </div>
-                      <input id="timelineRange" type="range" min="0" max="0" step="1" value="0" />
-                    </div>
-                    <div class="viz-hint">键盘：← / → 控制步骤，Space 播放暂停，PageUp / PageDown 翻书页</div>
-                  </div>
-                </div>
-                <aside id="liveFormulaBoard" class="live-formula-board"></aside>
-              </div>
-            </section>
-
-            <section class="story-appendix">
-              <details id="flowPanel" class="panel story-fold flow-story-panel" open>
-                <summary class="panel-header fold-summary story-summary">
-                  <span class="fold-title">
-                    <h2>数据流 / Model Flow</h2>
-                    <small>正文联动</small>
-                  </span>
-                  <span class="fold-meta">
-                    <span id="phaseBadge" class="pill accent"></span>
-                    <span class="fold-indicator">折叠</span>
-                  </span>
-                </summary>
-                <div class="story-fold-body">
-                  <div id="flowDiagram" class="flow-diagram"></div>
-                  <div class="explanation-block">
-                    <div class="explanation-header">
-                      <h3>本页讲解</h3>
-                      <div id="teachingTabs" class="teaching-tabs">
-                        <button class="button teaching-tab active" data-teaching-tab="intuition" type="button">直觉</button>
-                        <button class="button teaching-tab" data-teaching-tab="why" type="button">为什么</button>
-                        <button class="button teaching-tab" data-teaching-tab="visual" type="button">看图重点</button>
-                        <button class="button teaching-tab" data-teaching-tab="glossary" type="button">术语</button>
-                        <button class="button teaching-tab" data-teaching-tab="pseudocode" type="button">Pseudo Code</button>
-                        <button class="button teaching-tab" data-teaching-tab="math" type="button">Math</button>
-                        <button class="button teaching-tab" data-teaching-tab="mistake" type="button">常见误区</button>
-                      </div>
-                    </div>
-                    <div id="teachingPanel" class="teaching-panel"></div>
-                  </div>
-                </div>
-              </details>
-
-              <details id="tracePanel" class="panel story-fold trace-story-panel trace-shell">
-                <summary class="panel-header trace-header fold-summary story-summary">
-                  <span class="fold-title">
-                    <h2>公式推导 Trace</h2>
-                    <small>与当前步骤同步</small>
-                  </span>
-                  <span class="fold-meta">
-                    <span class="pill">公式 + 代入 + 结果</span>
-                    <span class="fold-indicator">展开</span>
-                  </span>
-                </summary>
-                <div class="story-fold-body">
-                  <div class="trace-actions">
-                    <div id="traceFilterButtons" class="trace-filter-row">
-                      <button class="button trace-filter active" data-trace-filter="all" type="button">全部步骤</button>
-                      <button class="button trace-filter" data-trace-filter="current" type="button">仅当前阶段</button>
-                    </div>
-                    <button id="traceToggleButton" class="button ghost trace-toggle" type="button">折叠</button>
-                  </div>
-                  <div id="traceList" class="trace-list"></div>
-                </div>
-              </details>
-
-              <details id="statsPanel" class="panel story-fold stats-story-panel">
-                <summary class="panel-header fold-summary story-summary">
-                  <span class="fold-title">
-                    <h2>调试器</h2>
-                    <small>参数与损失状态</small>
-                  </span>
-                  <span class="fold-indicator">展开</span>
-                </summary>
-                <div class="story-fold-body">
-                  <div id="statsGrid" class="stat-grid"></div>
-                  <div class="metric-card">
-                    <div class="metric-row">
-                      <span>Prediction</span>
-                      <strong id="predictionValue"></strong>
-                    </div>
-                    <div class="metric-row">
-                      <span>Target</span>
-                      <strong id="targetValue"></strong>
-                    </div>
-                    <div class="metric-row">
-                      <span>Loss</span>
-                      <strong id="lossValue"></strong>
-                    </div>
-                  </div>
-                </div>
-              </details>
-            </section>
-          </section>
         </section>
       </main>
+
+      <div class="page-turner-bar">
+        <div class="page-turner-inner">
+          <span class="page-turner-label">翻页对比</span>
+          <div class="reader-nav reader-nav-floating">
+            <button id="pagePrevButton" class="button ghost" type="button">上一页</button>
+            <button id="pageNextButton" class="button primary" type="button">下一页</button>
+          </div>
+        </div>
+      </div>
+
+      <section id="storyGrid" class="story-grid story-grid-detached">
+        <section id="plotPanel" class="panel viz-story-panel">
+          <div class="panel-header story-panel-header">
+            <div>
+              <p class="story-panel-kicker">交互图解</p>
+              <h2>交互图解</h2>
+            </div>
+            <span id="datasetMeta" class="pill"></span>
+          </div>
+          <div class="live-workbench">
+            <div class="live-plot-column">
+              <div id="focusGuide" class="focus-guide"></div>
+              <svg id="plot" viewBox="0 0 640 520" class="plot"></svg>
+              <details class="story-controls-panel">
+                <summary class="story-controls-summary">需要时再操作这幅图</summary>
+                <div class="viz-controls">
+                  <div class="control-row viz-control-row">
+                    <button id="prevButton" class="button ghost" type="button">上一步</button>
+                    <button id="nextButton" class="button primary" type="button">下一步</button>
+                    <button id="playPauseButton" class="button primary" type="button">自动播放</button>
+                    <button id="resetButton" class="button ghost" type="button">回到本页起点</button>
+                  </div>
+                  <div class="timeline viz-timeline">
+                    <div class="timeline-head">
+                      <span>步骤</span>
+                      <span id="stepCounter"></span>
+                    </div>
+                    <input id="timelineRange" type="range" min="0" max="0" step="1" value="0" />
+                  </div>
+                  <div class="viz-hint">键盘：← / → 控制步骤，Space 播放暂停，PageUp / PageDown 翻书页</div>
+                </div>
+              </details>
+            </div>
+            <aside id="liveFormulaBoard" class="live-formula-board"></aside>
+          </div>
+        </section>
+
+        <section class="story-appendix">
+          <details id="flowPanel" class="panel story-fold flow-story-panel">
+            <summary class="panel-header fold-summary story-summary">
+              <span class="fold-title">
+                <h2>数据如何流动</h2>
+                <small>把这一页的主线走一遍</small>
+              </span>
+              <span class="fold-meta">
+                <span id="phaseBadge" class="pill accent"></span>
+                <span class="fold-indicator">展开</span>
+              </span>
+            </summary>
+            <div class="story-fold-body">
+              <div id="flowDiagram" class="flow-diagram"></div>
+              <div class="explanation-block">
+                <div class="explanation-header">
+                  <div class="explanation-heading-copy">
+                    <h3>这一页怎么读</h3>
+                    <p>先抓主线，需要时再展开术语、公式和误区附录。</p>
+                  </div>
+                  <div id="teachingTabs" class="teaching-tabs-shell">
+                    <div class="teaching-tabs teaching-tabs-primary">
+                      <button class="button teaching-tab active" data-teaching-tab="intuition" type="button">直觉</button>
+                      <button class="button teaching-tab" data-teaching-tab="why" type="button">为什么</button>
+                      <button class="button teaching-tab" data-teaching-tab="visual" type="button">看图重点</button>
+                    </div>
+                    <details id="teachingAppendixToggle" class="teaching-tab-appendix">
+                      <summary>展开深入学习</summary>
+                      <div class="teaching-tabs teaching-tabs-secondary">
+                        <button class="button teaching-tab" data-teaching-tab="glossary" type="button">术语</button>
+                        <button class="button teaching-tab" data-teaching-tab="pseudocode" type="button">推导步骤</button>
+                        <button class="button teaching-tab" data-teaching-tab="math" type="button">公式步骤</button>
+                        <button class="button teaching-tab" data-teaching-tab="mistake" type="button">常见误区</button>
+                      </div>
+                    </details>
+                  </div>
+                </div>
+                <div id="teachingPanel" class="teaching-panel"></div>
+              </div>
+            </div>
+          </details>
+
+          <details id="tracePanel" class="panel story-fold trace-story-panel trace-shell">
+            <summary class="panel-header trace-header fold-summary story-summary">
+              <span class="fold-title">
+                <h2>逐步推导</h2>
+                <small>需要时再展开细看</small>
+              </span>
+              <span class="fold-meta">
+                <span class="pill">公式 + 代入 + 结果</span>
+                <span class="fold-indicator">展开</span>
+              </span>
+            </summary>
+            <div class="story-fold-body">
+              <div class="trace-actions">
+                <div id="traceFilterButtons" class="trace-filter-row">
+                  <button class="button trace-filter active" data-trace-filter="all" type="button">全部步骤</button>
+                  <button class="button trace-filter" data-trace-filter="current" type="button">仅当前阶段</button>
+                </div>
+                <button id="traceToggleButton" class="button ghost trace-toggle" type="button">折叠</button>
+              </div>
+              <div id="traceList" class="trace-list"></div>
+            </div>
+          </details>
+
+          <details id="statsPanel" class="panel story-fold stats-story-panel">
+            <summary class="panel-header fold-summary story-summary">
+              <span class="fold-title">
+                <h2>内部状态</h2>
+                <small>参数、预测与损失</small>
+              </span>
+              <span class="fold-indicator">展开</span>
+            </summary>
+            <div class="story-fold-body">
+              <div class="lab-shell">
+                <div class="lab-intro">
+                  <strong>实验台</strong>
+                  <p>如果你想换数据、调学习率或导出当前状态，可以在这里慢慢试；默认阅读时它不再占满侧边栏。</p>
+                </div>
+                <div class="lab-grid">
+                  <div class="control-group">
+                    <label for="languageSelect">讲解语言</label>
+                    <select id="languageSelect">
+                      <option value="zh">中文</option>
+                      <option value="en">英文</option>
+                    </select>
+                  </div>
+                  <div class="control-group">
+                    <label for="datasetSelect">内置数据集</label>
+                    <select id="datasetSelect"></select>
+                  </div>
+                  <div class="control-group">
+                    <label for="learningRateInput">学习率</label>
+                    <input id="learningRateInput" type="range" min="0.01" max="1" step="0.01" />
+                    <div id="learningRateValue" class="meta-value"></div>
+                  </div>
+                  <div class="control-group">
+                    <label>预设场景</label>
+                    <div id="presetButtons" class="preset-row"></div>
+                  </div>
+                  <div class="control-group">
+                    <label for="sampleSelect">当前跟踪样本</label>
+                    <select id="sampleSelect"></select>
+                  </div>
+                  <div class="control-group">
+                    <label>导出</label>
+                    <div class="export-row">
+                      <button id="downloadMermaidButton" class="button ghost" type="button">导出 Mermaid</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="control-group lab-dataset-group">
+                  <label for="customDatasetInput">自定义数据 CSV</label>
+                  <textarea id="customDatasetInput" class="dataset-input" rows="9" spellcheck="false"></textarea>
+                  <div id="customDatasetHint" class="control-footnote"></div>
+                  <div class="export-row">
+                    <button id="importDatasetButton" class="button primary" type="button">导入当前编辑内容</button>
+                    <button id="resetDatasetButton" class="button ghost" type="button">恢复为当前内置数据</button>
+                  </div>
+                </div>
+                <div class="control-footnote">这里显示的是当前正在使用或即将导入的数据。改完就导入，不需要再到别处确认。</div>
+                <div id="backendStatus" class="status-banner">正在连接后端...</div>
+              </div>
+              <div id="statsGrid" class="stat-grid"></div>
+              <div class="metric-card">
+                <div class="metric-row">
+                  <span>预测值</span>
+                  <strong id="predictionValue"></strong>
+                </div>
+                <div class="metric-row">
+                  <span>目标值</span>
+                  <strong id="targetValue"></strong>
+                </div>
+                <div class="metric-row">
+                  <span>损失</span>
+                  <strong id="lossValue"></strong>
+                </div>
+              </div>
+            </div>
+          </details>
+        </section>
+      </section>
     </div>
 
     <script type="module" src="./src/main.js"></script>

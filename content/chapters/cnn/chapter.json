@@ -140,7 +140,7 @@
         "这个 patch 为什么会让某个 feature map 响应更高。",
         "公式里的乘法和求和，对应图里的哪一块区域。"
       ],
-      "experimentPrompt": "切到 Math，看一眼局部打分，再回到图里找它对应的 patch。",
+      "experimentPrompt": "切到公式步骤，看一眼局部打分，再回到图里找它对应的 patch。",
       "takeaways": [
         "卷积先是“局部打分”，后面才是“整图判断”。",
         "feature map 记录的是“哪里像某种模式”。",
@@ -465,7 +465,7 @@
       "principles": [],
       "observe": [
         "看 backward / update 阶段 kernel 的变化。",
-        "对照 Pseudo Code，确认 gradient 最终落在了哪里。",
+        "对照推导步骤，确认 gradient 最终落在了哪里。",
         "思考：为什么 filter 更新后，feature map 也会变。"
       ],
       "experimentPrompt": "反复点几次 update，观察 filter 和 feature map 是否一起变化。",
@@ -508,7 +508,7 @@
       "principles": [],
       "observe": [
         "重点看 update 前后 kernel 的变化。",
-        "对照 Focus Guide，确认当前该先看 patch、feature map 还是 probability。",
+        "对照阅读顺序提示，确认当前该先看 patch、feature map 还是 probability。",
         "别让公式和图分开读。"
       ],
       "experimentPrompt": "手工设计一张 5x5 图，让模型更偏向 class 1，再验证结果。",

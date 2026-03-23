@@ -4,8 +4,24 @@ function escapeHtml(value) {
   return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 }
 
+function getFlowTraceIndex(node, index) {
+  return Number.isInteger(node?.traceIndex) ? node.traceIndex : index;
+}
+
+function getCurrentTraceIndex(snapshot) {
+  const traces = snapshot?.calculationTrace ?? [];
+  const currentIndex = traces.findIndex((trace) => trace.status === "current");
+  return currentIndex === -1 ? 0 : currentIndex;
+}
+
 function getActiveFlow(snapshot) {
-  return snapshot?.modelFlow?.find((node) => node.active) ?? snapshot?.modelFlow?.[0] ?? null;
+  const targetTraceIndex = getCurrentTraceIndex(snapshot);
+  return (
+    snapshot?.modelFlow?.find((node, index) => getFlowTraceIndex(node, index) === targetTraceIndex) ??
+    snapshot?.modelFlow?.find((node) => node.active) ??
+    snapshot?.modelFlow?.[0] ??
+    null
+  );
 }
 
 function getChartTypeLabel(chartType) {
@@ -235,12 +251,15 @@ function buildGlossaryFallback(snapshot, language) {
 }
 
 function buildPseudocodeStages(snapshot) {
-  const activeIndex = snapshot?.modelFlow?.findIndex((node) => node.active) ?? -1;
-  return (snapshot?.modelFlow ?? []).map((node, index) => ({
-    label: node.title,
-    detail: node.detail,
-    status: index < activeIndex ? "done" : index === activeIndex ? "current" : "upcoming",
-  }));
+  const activeTraceIndex = getCurrentTraceIndex(snapshot);
+  return (snapshot?.modelFlow ?? []).map((node, index) => {
+    const traceIndex = getFlowTraceIndex(node, index);
+    return {
+      label: node.title,
+      detail: node.detail,
+      status: traceIndex < activeTraceIndex ? "done" : traceIndex === activeTraceIndex ? "current" : "upcoming",
+    };
+  });
 }
 
 function buildPseudocode(snapshot) {
@@ -274,8 +293,8 @@ function buildGuide(snapshot, language, selectedTraceIndex) {
   return {
     intuition:
       snapshot?.explanation ||
-      `This step belongs to ${chartLabel}. Read it as one node in the model flow, not as an isolated formula.`,
-    why: `This step matters because it determines what the next stage can do in ${chartLabel}. Follow it through the flow instead of reading it in isolation.`,
+      `This step belongs to ${chartLabel}. Read it as one stage in the learning flow, not as an isolated formula.`,
+    why: `This step matters because it determines what the next stage can do in ${chartLabel}. Follow it through the learning flow instead of reading it in isolation.`,
     visual: getVisualFallback(snapshot, selectedTrace, language),
     pseudocode: buildPseudocode(snapshot),
     pseudocodeStages: buildPseudocodeStages(snapshot),
@@ -325,6 +344,11 @@ export function renderTeachingPanel({ snapshot, language, teachingTab, selectedT
   tabsRoot.querySelectorAll("[data-teaching-tab]").forEach((button) => {
     button.classList.toggle("active", button.dataset.teachingTab === teachingTab);
   });
+
+  const appendixToggle = tabsRoot.querySelector("#teachingAppendixToggle");
+  if (appendixToggle) {
+    appendixToggle.open = ["glossary", "pseudocode", "math", "mistake"].includes(teachingTab);
+  }
 
   if (teachingTab === "math") {
     const steps = (guide.mathSteps ?? [])
@@ -377,8 +401,8 @@ export function renderTeachingPanel({ snapshot, language, teachingTab, selectedT
         <div class="teaching-phase-list">${pseudocodeStages}</div>
         <p class="teaching-summary">${
           language === "zh"
-            ? "先看阶段顺序，再看下面的 Pseudo Code。这样更容易把“数据流走到哪一步”和“代码在算什么”对起来。"
-            : "Read the phase order first, then the pseudocode. This makes it easier to align flow and computation."
+            ? "先看阶段顺序，再看下面的推导步骤。这样更容易把“数据流走到哪一步”和“代码在算什么”对起来。"
+            : "Read the phase order first, then the worked steps. This makes it easier to align flow and computation."
         }</p>
         <pre class="teaching-code">${escapeHtml(guide.pseudocode || "")}</pre>
       </div>

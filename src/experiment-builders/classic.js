@@ -23,7 +23,7 @@ function buildCurvePoints(params) {
 
 function buildLinearExplanation(sample, phase, prediction, loss, gradW, gradB, nextWeight, nextBias) {
   if (phase === "forward") {
-    return `The debugger feeds x = ${round(sample.x)} into the model and computes y_hat = w * x + b = ${round(prediction)}.`;
+    return `The model feeds x = ${round(sample.x)} into the current line and computes y_hat = w * x + b = ${round(prediction)}.`;
   }
   if (phase === "loss") {
     return `The prediction is compared with the target y = ${round(sample.y)}. The squared error becomes ${round(loss)}.`;

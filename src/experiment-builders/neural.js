@@ -5,6 +5,7 @@ import {
   tanh,
   softmax,
   dot,
+  mean,
   projectVector,
   getTraceStatus,
   getCurrentTraceIndex,
@@ -128,8 +129,10 @@ function buildCnnSnapshots(dataset, learningRate) {
     const nextKernelHorizontal = kernelHorizontal.map((row, rowIndex) =>
       row.map((value, colIndex) => value - learningRate * gradHorizontal[rowIndex][colIndex])
     );
-    const updatedVertical = reluGrid(convolveValid(image, nextKernelVertical).map);
-    const updatedHorizontal = reluGrid(convolveValid(image, nextKernelHorizontal).map);
+    const updatedVerticalConv = convolveValid(image, nextKernelVertical);
+    const updatedHorizontalConv = convolveValid(image, nextKernelHorizontal);
+    const updatedVertical = reluGrid(updatedVerticalConv.map);
+    const updatedHorizontal = reluGrid(updatedHorizontalConv.map);
     const updatedPooled = {
       vertical: maxGrid(updatedVertical),
       horizontal: maxGrid(updatedHorizontal),
@@ -162,6 +165,14 @@ function buildCnnSnapshots(dataset, learningRate) {
         },
         visualGuide: {
           inputGrid: image,
+          verticalBestPatch: verticalConv.bestPatch,
+          verticalBestPatchPosition: { row: verticalConv.bestRow, column: verticalConv.bestColumn },
+          horizontalBestPatch: horizontalConv.bestPatch,
+          horizontalBestPatchPosition: { row: horizontalConv.bestRow, column: horizontalConv.bestColumn },
+          updatedVerticalBestPatch: updatedVerticalConv.bestPatch,
+          updatedVerticalBestPatchPosition: { row: updatedVerticalConv.bestRow, column: updatedVerticalConv.bestColumn },
+          updatedHorizontalBestPatch: updatedHorizontalConv.bestPatch,
+          updatedHorizontalBestPatchPosition: { row: updatedHorizontalConv.bestRow, column: updatedHorizontalConv.bestColumn },
           kernelVertical: roundGrid(phase === "update" ? nextKernelVertical : kernelVertical),
           kernelHorizontal: roundGrid(phase === "update" ? nextKernelHorizontal : kernelHorizontal),
           previousKernelVertical: roundGrid(kernelVertical),
@@ -175,11 +186,11 @@ function buildCnnSnapshots(dataset, learningRate) {
           probabilities: phase === "update" ? updatedProbabilities.map((value) => round(value)) : probabilities.map((value) => round(value)),
         },
         modelFlow: [
-          { title: "Input patch", detail: `5x5 image for class ${sample.label}`, active: phase === "forward" },
-          { title: "Convolution", detail: `vertical=${round(pooledVertical)}, horizontal=${round(pooledHorizontal)}`, active: phase === "forward" },
-          { title: "Pooling + softmax", detail: `loss = ${round(loss)}`, active: phase === "loss" },
-          { title: "Kernel gradients", detail: `dK via max-activation patch`, active: phase === "backward" },
-          { title: "Filter update", detail: `specialize kernels for the target pattern`, active: phase === "update" },
+          { title: "Input patch", detail: `5x5 image for class ${sample.label}`, active: phase === "forward", traceIndex: 0 },
+          { title: "Convolution", detail: `vertical=${round(pooledVertical)}, horizontal=${round(pooledHorizontal)}`, active: phase === "forward", traceIndex: 1 },
+          { title: "Pooling + softmax", detail: `loss = ${round(loss)}`, active: phase === "loss", traceIndex: 2 },
+          { title: "Kernel gradients", detail: `dK via max-activation patch`, active: phase === "backward", traceIndex: 3 },
+          { title: "Filter update", detail: `specialize kernels for the target pattern`, active: phase === "update", traceIndex: 4 },
         ],
         explanation: buildCnnExplanation(sample, phase, probabilities, { vertical: pooledVertical, horizontal: pooledHorizontal }, predictedClass),
         explanationZh: buildCnnExplanationZh(sample, phase, probabilities, { vertical: pooledVertical, horizontal: pooledHorizontal }, predictedClass),
@@ -351,11 +362,11 @@ function buildRnnSnapshots(dataset, learningRate) {
           previousProbability: round(result.probability),
         },
         modelFlow: [
-          { title: "Input sequence", detail: `${sample.sequence.length} timesteps`, active: phase === "forward" },
-          { title: "Recurrent rollup", detail: `h_T = ${round(result.hidden)}`, active: phase === "forward" },
-          { title: "Sequence loss", detail: `loss = ${round(loss)}`, active: phase === "loss" },
-          { title: "BPTT", detail: `grad_out = ${round(gradOutputWeight)}`, active: phase === "backward" },
-          { title: "State update", detail: `w_rec -> ${round(nextWeights.recurrentWeight)}`, active: phase === "update" },
+          { title: "Input sequence", detail: `${sample.sequence.length} timesteps`, active: phase === "forward", traceIndex: 0 },
+          { title: "Recurrent rollup", detail: `h_T = ${round(result.hidden)}`, active: phase === "forward", traceIndex: 1 },
+          { title: "Sequence loss", detail: `loss = ${round(loss)}`, active: phase === "loss", traceIndex: 2 },
+          { title: "BPTT", detail: `grad_out = ${round(gradOutputWeight)}`, active: phase === "backward", traceIndex: 3 },
+          { title: "State update", detail: `w_rec -> ${round(nextWeights.recurrentWeight)}`, active: phase === "update", traceIndex: 4 },
         ],
         explanation: buildRnnExplanation(sample, phase, result.hiddenStates, result.probability, loss),
         explanationZh: buildRnnExplanationZh(sample, phase, result.hiddenStates, result.probability, loss),
@@ -519,11 +530,11 @@ function buildResNetSnapshots(dataset, learningRate) {
           classifierVector: (phase === "update" ? nextClassifier : classifier).map((value) => round(value)),
         },
         modelFlow: [
-          { title: "Input", detail: `6-d feature vector`, active: phase === "forward" },
-          { title: "Residual branch", detail: `two light transforms`, active: phase === "forward" },
-          { title: "Skip add", detail: `loss = ${round(loss)}`, active: phase === "loss" },
-          { title: "Gradient split", detail: `identity + branch`, active: phase === "backward" },
-          { title: "Residual update", detail: `keep skip path intact`, active: phase === "update" },
+          { title: "Input", detail: `6-d feature vector`, active: phase === "forward", traceIndex: 0 },
+          { title: "Residual branch", detail: `two light transforms`, active: phase === "forward", traceIndex: 1 },
+          { title: "Skip add", detail: `loss = ${round(loss)}`, active: phase === "loss", traceIndex: 2 },
+          { title: "Gradient split", detail: `identity + branch`, active: phase === "backward", traceIndex: 3 },
+          { title: "Residual update", detail: `keep skip path intact`, active: phase === "update", traceIndex: 4 },
         ],
         explanation: buildResNetExplanation(sample, phase, probability, loss),
         explanationZh: buildResNetExplanationZh(sample, phase, probability, loss),
@@ -826,12 +837,11 @@ function buildTransformerSnapshotsV3(dataset, learningRate) {
           },
         },
         modelFlow: [
-          { title: "Token + position", detail: `x + p for "${sample.token}" = [${addVectors(sample.embedding, positionalEncodings[sampleIndex]).map((value) => round(value)).join(", ")}]`, active: phase === "forward" },
-          { title: "Two masked heads", detail: `HeadA and HeadB compute causal scores for "${sample.token}"`, active: phase === "forward" },
-          { title: "Masked dot-product", detail: `future positions are blocked by the causal mask`, active: phase === "loss" },
-          { title: "Residual + LayerNorm 1", detail: `res1=[${visibleResidual.map((value) => round(value)).join(", ")}], ln1=[${visibleNorm.normalized.map((value) => round(value)).join(", ")}]`, active: phase === "loss" },
-          { title: "FFN + GELU", detail: `ffn=[${visibleFfnOutput.map((value) => round(value)).join(", ")}]`, active: phase === "backward" },
-          { title: "Residual + LayerNorm 2", detail: `res2=[${visibleResidual2.map((value) => round(value)).join(", ")}], ln2=[${visibleNorm2.normalized.map((value) => round(value)).join(", ")}]`, active: phase === "update" },
+          { title: "Token + position", detail: `x + p for "${sample.token}" = [${addVectors(sample.embedding, positionalEncodings[sampleIndex]).map((value) => round(value)).join(", ")}]`, active: phase === "forward", traceIndex: 0 },
+          { title: "Two masked heads", detail: `HeadA and HeadB compute causal scores for "${sample.token}"`, active: phase === "forward", traceIndex: 1 },
+          { title: "Attention + residual 1", detail: `res1=[${visibleResidual.map((value) => round(value)).join(", ")}], ln1=[${visibleNorm.normalized.map((value) => round(value)).join(", ")}]`, active: phase === "loss", traceIndex: 2 },
+          { title: "FFN + GELU", detail: `ffn=[${visibleFfnOutput.map((value) => round(value)).join(", ")}]`, active: phase === "backward", traceIndex: 3 },
+          { title: "Residual + LayerNorm 2", detail: `res2=[${visibleResidual2.map((value) => round(value)).join(", ")}], ln2=[${visibleNorm2.normalized.map((value) => round(value)).join(", ")}]`, active: phase === "update", traceIndex: 4 },
         ],
         explanation: buildTransformerAdvancedExplanation(
           sample,

@@ -103,8 +103,8 @@
       "principles": [],
       "observe": [
         "看当前样本的 x 是如何映射到预测点上的。",
-        "对照 Model Flow 里的 forward 节点。",
-        "再点 Math，确认这一步代入的是哪些数值。"
+        "对照数据流图里的前向阶段。",
+        "再点公式步骤，确认这一步代入的是哪些数值。"
       ],
       "experimentPrompt": "把 Learning Rate 先放一边，只看 forward。问自己：如果 w 更大，图上的线会往哪里转？",
       "takeaways": [],
@@ -151,7 +151,7 @@
       "principles": [],
       "observe": [
         "看预测点和真实点之间的距离。",
-        "看 Trace 卡片里 error 是如何代入数值的。",
+        "看逐步推导里 error 是如何代入数值的。",
         "理解为什么 Loss 越大，说明这一步越“错”。"
       ],
       "experimentPrompt": "选一个明显偏离拟合线的样本，观察它的 Loss 为什么会更大。",
@@ -193,8 +193,8 @@
       ],
       "principles": [],
       "observe": [
-        "看 Pseudo Code 里 backward 这一步。",
-        "确认哪些参数在 Debugger 里被高亮。",
+        "先看推导步骤里的 backward 这一步。",
+        "确认哪些参数在内部状态里被高亮。",
         "在图上想象：如果参数按当前 gradient 更新，线会往哪里移动。"
       ],
       "experimentPrompt": "观察高 Loss 样本对应的 gradient，和低 Loss 样本有什么直觉差异。",
@@ -231,7 +231,7 @@
       "principles": [],
       "observe": [
         "重点看 update 阶段的 before / after 差异。",
-        "对比 Focus Guide、图形区和 Trace 卡片。",
+        "对比阅读顺序提示、图形区和逐步推导。",
         "如果线变差了，先不要怪公式，先看 Learning Rate 是否过大。"
       ],
       "experimentPrompt": "把自定义 CSV 改成一条你自己设计的数据线，再观察模型是否能快速收敛。",

@@ -4,7 +4,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build:content": "node scripts/build-content.js",
+    "extract:nndl": "node scripts/extract-nndl-content.js",
+    "build:nndl-drafts": "node scripts/build-nndl-drafts.js"
   },
   "devDependencies": {
     "pdfjs-dist": "^5.5.207",

@@ -274,7 +274,7 @@
         "关注 residual branch 参数梯度和输入梯度的区别。",
         "不要把 identity path 误解为“没有学习”，它是在保护学习。"
       ],
-      "experimentPrompt": "在当前样本上切换到 Math，解释输入梯度里为什么会多出一条直接项。",
+      "experimentPrompt": "在当前样本上切换到公式步骤，解释输入梯度里为什么会多出一条直接项。",
       "takeaways": [],
       "callout": {
         "title": "阅读提示",

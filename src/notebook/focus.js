@@ -115,7 +115,7 @@ export function describeVisualFocus({ snapshot, trace, linkedSymbol, language = 
       parameters: { label: "hidden-state chain", detail: "Treat h1...hT as one rolling memory path instead of separate outputs." },
       prediction: { label: "final state and probability", detail: "The last hidden state and the probability bar together explain the sequence-level prediction." },
       loss: { label: "sequence loss", detail: "Read the final probability against the target before moving to gradients." },
-      gradient: { label: "BPTT path", detail: "Trace the error backward through time from the last state to earlier timesteps." },
+      gradient: { label: "BPTT path", detail: "Follow the error backward through time from the last state to earlier timesteps." },
       update: { label: "updated state rollout", detail: "Compare previous and current hidden-state bars to see how the recurrent update changed memory." },
     },
     attention: {

@@ -47,7 +47,7 @@ function buildCurrentFormula(page, selectedTrace, linkedSymbol) {
     return {
       title: selectedTrace?.titleZh || selectedTrace?.title || matchedFormula.label,
       expression: matchedFormula.expression,
-      explanation: `${matchedFormula.explanation} 详细推导留在 Trace。`,
+      explanation: `${matchedFormula.explanation} 详细推导留在下面的逐步推导区。`,
       detailInTrace: true,
     };
   }
@@ -56,7 +56,7 @@ function buildCurrentFormula(page, selectedTrace, linkedSymbol) {
     return {
       title: selectedTrace?.titleZh || selectedTrace?.title || pageFormulas[0].label,
       expression: pageFormulas[0].expression,
-      explanation: `${pageFormulas[0].explanation} 详细推导留在 Trace。`,
+      explanation: `${pageFormulas[0].explanation} 详细推导留在下面的逐步推导区。`,
       detailInTrace: true,
     };
   }
@@ -65,8 +65,8 @@ function buildCurrentFormula(page, selectedTrace, linkedSymbol) {
     title: selectedTrace?.titleZh || selectedTrace?.title || "当前步骤",
     expression: "",
     explanation: linkedSymbol
-      ? `当前焦点符号：${linkedSymbol.label}。${linkedSymbol.meaning} 详细推导留在 Trace。`
-      : "这一页没有额外的紧凑公式，先看图和数据流，再按需展开 Trace。",
+      ? `当前焦点符号：${linkedSymbol.label}。${linkedSymbol.meaning} 详细推导留在下面的逐步推导区。`
+      : "这一页没有额外的紧凑公式，先看图和数据流，再按需展开逐步推导。",
     detailInTrace: true,
   };
 }
@@ -85,11 +85,11 @@ export function renderNotebookBridge(page) {
   return `
     <section class="book-section notebook-bridge">
       <div class="notebook-intro">
-        <div class="notebook-kicker">Notebook Style Reading</div>
-        <h3>边读边跑这一页</h3>
+        <div class="notebook-kicker">正文里的交互图解</div>
+        <h3>先读懂这一页，再动这幅图</h3>
         <p>
-          下面不是单独的调试面板，而是这一页正文的运行单元。先读文字，再直接拖动步骤、
-          看图、看数据流、看 Trace，让解释、公式和样本变化出现在同一个阅读视野里。
+          这一块不再是独立的调试台，而是正文中的交互图解。先理解这页在回答什么问题，
+          再拖动步骤，让图、公式和解释一起变化。
         </p>
       </div>
       <div class="notebook-rhythm">
@@ -98,11 +98,11 @@ export function renderNotebookBridge(page) {
           <p>${getNotebookPhaseLabel(page.phase)}</p>
         </article>
         <article class="notebook-rhythm-card">
-          <strong>建议顺序</strong>
-          <p>正文 -> 运行单元 -> 数据流 -> Trace -> 回到公式</p>
+          <strong>建议读法</strong>
+          <p>问题 → 图解 → 主公式 → 数据如何流动 → 逐步推导</p>
         </article>
         <article class="notebook-rhythm-card">
-          <strong>当前任务</strong>
+          <strong>动手观察</strong>
           <p>${page.experimentPrompt ?? "跟着当前高亮步骤往下读。"}</p>
         </article>
       </div>
@@ -126,18 +126,17 @@ export function renderNotebookContext({ mount, snapshot, page, currentStep, tota
         <span class="pill accent">阶段 ${snapshot.phase.toUpperCase()}</span>
         <span class="pill">步骤 ${currentStep + 1} / ${totalSteps}</span>
         <span class="pill">样本 ${snapshot.focusSample?.id ?? "--"}</span>
-        <span class="pill">关注 ${spotlight}</span>
       </div>
       <div class="notebook-context-text">
         <strong>${page.title}</strong>
-        <p>当前这一步在看 <span>${spotlight}</span>，对应 Trace 是「${traceTitle}」。先看动画，再按需要跳到数据流或 Trace。</p>
+        <p>当前这一小步重点看 <span>${spotlight}</span>。如果图里有变化，先用肉眼说清它为什么变，再回头看公式「${traceTitle}」。</p>
       </div>
     </div>
     <div class="notebook-jump-row">
-      <button class="button ghost notebook-jump" data-notebook-target="plot" type="button">看动画</button>
-      <button class="button ghost notebook-jump" data-notebook-target="flow" type="button">看数据流</button>
-      <button class="button ghost notebook-jump" data-notebook-target="trace" type="button">看公式 Trace</button>
-      <button class="button ghost notebook-jump" data-notebook-target="stats" type="button">看参数状态</button>
+      <button class="button ghost notebook-jump" data-notebook-target="plot" type="button">看主图</button>
+      <button class="button ghost notebook-jump" data-notebook-target="flow" type="button">看数据如何流动</button>
+      <button class="button ghost notebook-jump" data-notebook-target="trace" type="button">看逐步推导</button>
+      <button class="button ghost notebook-jump" data-notebook-target="stats" type="button">看内部状态</button>
     </div>
   `;
 }
@@ -190,7 +189,7 @@ export function renderFormulaCards({ page, selectedSymbol, symbols }) {
     <section class="book-section formula-section">
       <div class="formula-section-heading">
         <h3>关键公式</h3>
-        <small>正文公式负责建立结构，长推导交给下面的 Trace。</small>
+        <small>正文公式负责建立结构，长推导交给下面的逐步推导区。</small>
       </div>
       <div class="formula-grid">
         ${formulas
@@ -222,8 +221,8 @@ export function renderLiveFormulaBoard({ root, page, selectedTrace, linkedSymbol
   root.innerHTML = `
     <div class="live-formula-header">
       <div>
-        <h3>公式同步板</h3>
-        <small>当前运行公式始终跟着步骤走，长推导留在 Trace。</small>
+        <h3>这一刻最该看的公式</h3>
+        <small>先把当前变化说清楚，再决定要不要展开更长的推导。</small>
       </div>
       <span class="pill accent live-formula-spotlight">${getSpotlightLabel(currentSpotlight)}</span>
     </div>
@@ -233,24 +232,28 @@ export function renderLiveFormulaBoard({ root, page, selectedTrace, linkedSymbol
       ${currentFormula.expression ? `<div class="live-formula-math">${renderMathExpression(currentFormula.expression, { displayMode: true })}</div>` : ""}
       <p>${currentFormula.explanation}</p>
     </article>
-    <div class="live-formula-stack">
-      <div class="live-formula-subtitle">本页关键公式</div>
-      ${
-        formulas.length
-          ? formulas
-              .map(
-                (formula) => `
-                  <article class="live-formula-card${selectedSymbol && formulaMentionsSymbol(formula, selectedSymbol) ? " active" : ""}">
-                    <div class="live-formula-label">${formula.label}</div>
-                    <div class="live-formula-math">${renderMathExpression(formula.expression, { displayMode: true })}</div>
-                    <p>${formula.explanation}</p>
-                  </article>
-                `
-              )
-              .join("")
-          : `<article class="live-formula-card"><div class="live-formula-label">本页说明</div><p>这一页没有额外的关键公式，先盯住当前运行公式和图上的高亮对象。</p></article>`
-      }
-    </div>
+    ${
+      formulas.length
+        ? `
+          <details class="live-formula-details">
+            <summary>查看这一页的其他关键公式</summary>
+            <div class="live-formula-stack">
+              ${formulas
+                .map(
+                  (formula) => `
+                    <article class="live-formula-card${selectedSymbol && formulaMentionsSymbol(formula, selectedSymbol) ? " active" : ""}">
+                      <div class="live-formula-label">${formula.label}</div>
+                      <div class="live-formula-math">${renderMathExpression(formula.expression, { displayMode: true })}</div>
+                      <p>${formula.explanation}</p>
+                    </article>
+                  `
+                )
+                .join("")}
+            </div>
+          </details>
+        `
+        : ""
+    }
     ${
       symbols?.length
         ? `

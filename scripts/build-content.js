@@ -5,6 +5,7 @@ import { normalizeChapter, validateChapter } from "../src/content/schema.js";
 
 const ROOT_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const CHAPTERS_DIR = path.join(ROOT_DIR, "content", "chapters");
+const DRAFTS_DIR = path.join(ROOT_DIR, "content", "drafts", "nndl");
 const OUTPUT_FILE = path.join(ROOT_DIR, "src", "generated", "book-content.generated.js");
 
 async function readChapterDirectories() {
@@ -12,7 +13,29 @@ async function readChapterDirectories() {
   return entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
 }
 
-async function readChapters() {
+async function readDraftChapters() {
+  try {
+    const entries = await readdir(DRAFTS_DIR, { withFileTypes: true });
+    const drafts = [];
+
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith(".json")) {
+        continue;
+      }
+      const payload = JSON.parse(await readFile(path.join(DRAFTS_DIR, entry.name), "utf8"));
+      drafts.push(payload);
+    }
+
+    return drafts;
+  } catch (error) {
+    if (error?.code === "ENOENT") {
+      return [];
+    }
+    throw error;
+  }
+}
+
+async function readBaseChapters() {
   const chapterIds = await readChapterDirectories();
   const chapters = [];
 
@@ -22,7 +45,21 @@ async function readChapters() {
     chapters.push(payload);
   }
 
-  return chapters.map((chapter, index) => normalizeChapter(chapter, index)).sort((left, right) => left.order - right.order);
+  return chapters;
+}
+
+async function readChapters() {
+  const baseChapters = await readBaseChapters();
+  const draftChapters = await readDraftChapters();
+  const chapterMap = new Map(baseChapters.map((chapter) => [chapter.id, chapter]));
+
+  draftChapters.forEach((draft) => {
+    chapterMap.set(draft.id, draft);
+  });
+
+  return [...chapterMap.values()]
+    .map((chapter, index) => normalizeChapter(chapter, index))
+    .sort((left, right) => left.order - right.order);
 }
 
 function assertValid(chapters) {

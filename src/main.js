@@ -9,13 +9,17 @@ import { renderPlot } from "./plots/index.js";
 import { renderFlow, renderFocusGuide, renderStats, renderTrace } from "./ui/debug-panels.js";
 import {
   buildChapterSummaryPage as buildSummaryPage,
+  renderAppendix as renderReaderAppendix,
   renderBookSections as renderReaderSections,
   renderCallout as renderReaderCallout,
   renderChapterSummaryDetail as renderReaderChapterSummaryDetail,
+  renderCoreContent as renderReaderCoreContent,
+  renderDiagramNotes as renderReaderDiagramNotes,
   renderMiniQuiz as renderReaderMiniQuiz,
   renderObservationSection as renderReaderObservationSection,
-  renderPrinciples as renderReaderPrinciples,
+  renderOpeningQuestion as renderReaderOpeningQuestion,
   renderTakeaways as renderReaderTakeaways,
+  renderWalkthrough as renderReaderWalkthrough,
 } from "./reader/renderers.js";
 import {
   renderFormulaCards as renderNotebookFormulaCards,
@@ -24,6 +28,11 @@ import {
   renderNotebookContext as renderNotebookContextPanel,
 } from "./notebook/renderers.js";
 import { describeVisualFocus, getStepBoundTrace } from "./notebook/focus.js";
+import {
+  parseCustomDataset as parseCustomDatasetInput,
+  populateCustomDatasetGuide as populateCustomDatasetEditorGuide,
+  syncCustomDatasetEditor as syncCustomDatasetTextarea,
+} from "./main-dataset.js";
 
 const state = {
   metadata: null,
@@ -57,10 +66,12 @@ const dom = {
   pageList: document.querySelector("#pageList"),
   chapterHero: document.querySelector("#chapterHero"),
   chapterBody: document.querySelector("#chapterBody"),
+  storyGrid: document.querySelector("#storyGrid"),
+  readerColumn: document.querySelector(".reader-column"),
   readerProgress: document.querySelector("#readerProgress"),
   pagePrevButton: document.querySelector("#pagePrevButton"),
   pageNextButton: document.querySelector("#pageNextButton"),
-  storyGrid: document.querySelector("#storyGrid"),
+  pageTurnerBar: document.querySelector(".page-turner-bar"),
   plotPanel: document.querySelector("#plotPanel"),
   flowPanel: document.querySelector("#flowPanel"),
   tracePanel: document.querySelector("#tracePanel"),
@@ -111,7 +122,7 @@ function setBackendStatus(message, variant = "") {
 
 function renderSidebarState() {
   dom.pageShell.classList.toggle("sidebar-collapsed", state.sidebarCollapsed);
-  dom.sidebarToggleButton.textContent = state.sidebarCollapsed ? "展开目录与实验台" : "收起目录与实验台";
+  dom.sidebarToggleButton.textContent = state.sidebarCollapsed ? "展开目录" : "收起目录";
   dom.sidebarToggleButton.setAttribute("aria-expanded", String(!state.sidebarCollapsed));
 }
 
@@ -188,8 +199,17 @@ function getSelectedTrace(snapshot) {
 }
 
 function getActiveFlowIndex(snapshot) {
-  const index = snapshot?.modelFlow?.findIndex((node) => node.active) ?? -1;
-  return index === -1 ? 0 : index;
+  const nodes = snapshot?.modelFlow ?? [];
+  const currentTraceIndex = getDefaultTraceIndex(snapshot);
+  const currentNode = nodes.find((node, index) => (Number.isInteger(node?.traceIndex) ? node.traceIndex : index) === currentTraceIndex);
+  if (currentNode) {
+    return currentNode.traceIndex ?? currentTraceIndex;
+  }
+  const activeNode = nodes.find((node) => node.active);
+  if (activeNode) {
+    return activeNode.traceIndex ?? nodes.indexOf(activeNode);
+  }
+  return 0;
 }
 
 function findTraceIndexBySpotlight(snapshot, spotlight) {
@@ -212,12 +232,12 @@ function setSelectedTraceIndex(index, snapshot = state.snapshots[getSafeCurrentS
   render();
 }
 
-function renderTeaching(snapshot) {
+function renderTeaching(snapshot, selectedTraceIndex = state.selectedTraceIndex) {
   renderTeachingPanel({
     snapshot,
     language: state.language,
     teachingTab: state.teachingTab,
-    selectedTraceIndex: state.selectedTraceIndex,
+    selectedTraceIndex,
     tabsRoot: dom.teachingTabs,
     panelRoot: dom.teachingPanel,
   });
@@ -252,19 +272,13 @@ function populateDatasetOptions() {
 }
 
 function populateCustomDatasetGuide(overwriteInput = false) {
-  const algorithm = getSelectedAlgorithm();
-  const spec = algorithm?.customDatasetSpec;
-  if (!spec) {
-    return;
-  }
-
-  dom.customDatasetHint.textContent = `格式：${spec.format}。每行一条样本，编辑后点击“导入当前编辑内容”。`;
-  dom.customDatasetInput.placeholder = spec.placeholder;
-
-  if (overwriteInput || !dom.customDatasetInput.value.trim()) {
-    dom.customDatasetInput.value = spec.placeholder;
-    state.customDatasetDirty = false;
-  }
+  populateCustomDatasetEditorGuide({
+    spec: getSelectedAlgorithm()?.customDatasetSpec,
+    state,
+    hintElement: dom.customDatasetHint,
+    inputElement: dom.customDatasetInput,
+    overwriteInput,
+  });
 }
 
 function populateSampleOptions() {
@@ -339,147 +353,19 @@ function setControlsDisabled(disabled) {
 }
 
 function parseCustomDataset() {
-  const algorithm = getSelectedAlgorithm();
-  const spec = algorithm?.customDatasetSpec;
-  const lines = dom.customDatasetInput.value
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
-  if (!spec) {
-    throw new Error("当前算法不支持自定义数据。");
-  }
-
-  if (lines.length < 3) {
-    throw new Error("自定义数据至少需要 3 行。");
-  }
-
-  return lines.map((line, index) => {
-    const parts = line.split(",").map((value) => value.trim());
-
-    if (
-      state.algorithmId === "logistic_regression" ||
-      state.algorithmId === "linear_svm" ||
-      state.algorithmId === "decision_tree" ||
-      state.algorithmId === "random_forest" ||
-      state.algorithmId === "gradient_boosting"
-    ) {
-      if (parts.length !== 3) {
-        throw new Error(`第 ${index + 1} 行应为 x1,x2,label。`);
-      }
-      return { id: `u${index + 1}`, x1: Number(parts[0]), x2: Number(parts[1]), label: Number(parts[2]) };
-    }
-
-    if (state.algorithmId === "pca_projection" || state.algorithmId === "kmeans_clustering") {
-      if (parts.length !== 2) {
-        throw new Error(`第 ${index + 1} 行应为 x1,x2。`);
-      }
-      return { id: `u${index + 1}`, x1: Number(parts[0]), x2: Number(parts[1]) };
-    }
-
-    if (state.algorithmId === "transformer_attention") {
-      if (parts.length !== 6) {
-        throw new Error(`第 ${index + 1} 行应为 token,e1,e2,e3,e4,targetIndex。`);
-      }
-      return {
-        id: `u${index + 1}`,
-        token: parts[0],
-        embedding: parts.slice(1, 5).map((value) => Number(value)),
-        targetIndex: Number(parts[5]),
-      };
-    }
-
-    if (state.algorithmId === "cnn_classifier") {
-      if (parts.length !== 26) {
-        throw new Error(`第 ${index + 1} 行应为 label,p1...p25。`);
-      }
-      return {
-        id: `u${index + 1}`,
-        label: Number(parts[0]),
-        pixels: parts.slice(1).map((value) => Number(value)),
-      };
-    }
-
-    if (state.algorithmId === "rnn_sequence") {
-      if (parts.length !== 7) {
-        throw new Error(`第 ${index + 1} 行应为 label,v1...v6。`);
-      }
-      return {
-        id: `u${index + 1}`,
-        label: Number(parts[0]),
-        sequence: parts.slice(1).map((value) => Number(value)),
-      };
-    }
-
-    if (state.algorithmId === "resnet_block") {
-      if (parts.length !== 7) {
-        throw new Error(`第 ${index + 1} 行应为 label,f1...f6。`);
-      }
-      return {
-        id: `u${index + 1}`,
-        label: Number(parts[0]),
-        features: parts.slice(1).map((value) => Number(value)),
-      };
-    }
-
-    if (parts.length !== 2) {
-      throw new Error(`第 ${index + 1} 行应为 x,y。`);
-    }
-
-    return { id: `u${index + 1}`, x: Number(parts[0]), y: Number(parts[1]) };
+  return parseCustomDatasetInput({
+    algorithmId: state.algorithmId,
+    spec: getSelectedAlgorithm()?.customDatasetSpec,
+    text: dom.customDatasetInput.value,
   });
 }
 
-function serializeDatasetForEditor(algorithmId, dataset) {
-  if (!Array.isArray(dataset) || !dataset.length) {
-    return "";
-  }
-
-  return dataset
-    .map((sample) => {
-      if (
-        algorithmId === "logistic_regression" ||
-        algorithmId === "linear_svm" ||
-        algorithmId === "decision_tree" ||
-        algorithmId === "random_forest" ||
-        algorithmId === "gradient_boosting"
-      ) {
-        return [sample.x1, sample.x2, sample.label].join(",");
-      }
-      if (algorithmId === "pca_projection" || algorithmId === "kmeans_clustering") {
-        return [sample.x1, sample.x2].join(",");
-      }
-      if (algorithmId === "transformer_attention") {
-        return [sample.token, ...(sample.embedding ?? []), sample.targetIndex].join(",");
-      }
-      if (algorithmId === "cnn_classifier") {
-        return [sample.label, ...(sample.pixels ?? [])].join(",");
-      }
-      if (algorithmId === "rnn_sequence") {
-        return [sample.label, ...(sample.sequence ?? [])].join(",");
-      }
-      if (algorithmId === "resnet_block") {
-        return [sample.label, ...(sample.features ?? [])].join(",");
-      }
-      return [sample.x, sample.y].join(",");
-    })
-    .join("\n");
-}
-
 function syncCustomDatasetEditor({ force = false } = {}) {
-  const canOverwrite = force || !state.customDatasetDirty || document.activeElement !== dom.customDatasetInput;
-  if (!canOverwrite) {
-    return;
-  }
-
-  const sourceDataset = state.customDatasetActive ? state.customDataset : state.dataset;
-  const serialized = serializeDatasetForEditor(state.algorithmId, sourceDataset);
-  if (!serialized) {
-    return;
-  }
-
-  dom.customDatasetInput.value = serialized;
-  state.customDatasetDirty = false;
+  syncCustomDatasetTextarea({
+    force,
+    state,
+    inputElement: dom.customDatasetInput,
+  });
 }
 
 function getInterestingDefaultSampleId(snapshots) {
@@ -711,7 +597,7 @@ function renderReader() {
   const selectedSymbol = ensureSelectedFormulaSymbol();
 
   dom.chapterHero.innerHTML = `
-    <p class="chapter-kicker">Chapter ${chapterIndex + 1}</p>
+    <p class="chapter-kicker">第 ${chapterIndex + 1} 章</p>
     <h2>${chapter.title}</h2>
     <p class="chapter-subtitle">${chapter.subtitle}</p>
     <p class="chapter-blurb">${chapter.blurb}</p>
@@ -728,32 +614,32 @@ function renderReader() {
   `;
 
   dom.chapterBody.innerHTML = `
-    <section class="book-section primary">
-      <h3>本页主题</h3>
-      <p>${page.summary}</p>
-    </section>
-    <section class="book-section">
-      <h3>正文</h3>
-      ${page.paragraphs.map((paragraph) => `<p>${paragraph}</p>`).join("")}
-    </section>
+    ${renderReaderOpeningQuestion(page)}
+    ${renderReaderCoreContent(page)}
+    ${renderReaderDiagramNotes(page)}
     ${renderNotebookBridge(page)}
+    ${renderReaderWalkthrough(page)}
     ${renderReaderSections(page)}
-    ${renderReaderPrinciples(page)}
     ${renderNotebookFormulaCards({ page, selectedSymbol, symbols })}
     ${renderReaderTakeaways(page)}
     ${renderReaderCallout(page)}
     ${renderReaderMiniQuiz(page)}
     ${renderReaderObservationSection(page)}
+    ${renderReaderAppendix(page)}
     ${renderReaderChapterSummaryDetail(page)}
   `;
 
   const notebookMount = dom.chapterBody.querySelector("#notebookMount");
   if (dom.storyGrid) {
     dom.storyGrid.classList.remove("notebook-embedded");
+    dom.storyGrid.classList.add("story-grid-detached");
   }
   if (notebookMount && dom.storyGrid) {
     dom.storyGrid.classList.add("notebook-embedded");
+    dom.storyGrid.classList.remove("story-grid-detached");
     notebookMount.replaceChildren(dom.storyGrid);
+  } else if (!notebookMount && dom.storyGrid && dom.pageShell) {
+    dom.pageShell.appendChild(dom.storyGrid);
   }
 
   const previousLocation = getAdjacentReaderPage(state.chapterId, state.pageIndex, -1);
@@ -763,6 +649,7 @@ function renderReader() {
 
   dom.pagePrevButton.disabled = state.loading || isFirst;
   dom.pageNextButton.disabled = state.loading || isLast;
+  dom.pageTurnerBar?.classList.toggle("is-disabled", state.loading || (isFirst && isLast));
 }
 
 function render() {
@@ -779,7 +666,7 @@ function render() {
     if (dom.liveFormulaBoard) {
       dom.liveFormulaBoard.innerHTML = `
         <div class="live-formula-header">
-          <h3>公式同步板</h3>
+          <h3>这一页的主公式</h3>
           <small>等待当前页的实验快照加载完成</small>
         </div>
       `;
@@ -844,8 +731,8 @@ function render() {
     symbols,
   });
   renderFocusGuide(dom.focusGuide, snapshot, focusTrace, state.language, linkedSymbol, visualFocus);
-  renderFlow(dom.flowDiagram, snapshot, state.selectedTraceIndex);
-  renderStats(dom.statsGrid, snapshot, spotlight);
+  renderFlow(dom.flowDiagram, snapshot, focusTrace ? findTraceIndexBySpotlight(snapshot, focusTrace.spotlight) : state.selectedTraceIndex, state.language);
+  renderStats(dom.statsGrid, snapshot, spotlight, state.language);
   renderTrace({
     traceList: dom.traceList,
     traceFilterButtons: dom.traceFilterButtons,
@@ -856,7 +743,7 @@ function render() {
     selectedTraceIndex: state.selectedTraceIndex,
     snapshot,
   });
-  renderTeaching(snapshot);
+  renderTeaching(snapshot, focusTrace ? findTraceIndexBySpotlight(snapshot, focusTrace.spotlight) : state.selectedTraceIndex);
   renderPlot({ svg: dom.plot, snapshot, getSelectedTrace: getRenderTrace, round });
 }
 
@@ -929,7 +816,8 @@ function bindEvents() {
     if (!button) {
       return;
     }
-    setSelectedTraceIndex(Number(button.dataset.flowIndex));
+    const traceIndex = Number(button.dataset.traceIndex ?? button.dataset.flowIndex);
+    setSelectedTraceIndex(traceIndex);
   });
 
   dom.focusGuide.addEventListener("click", (event) => {
@@ -984,10 +872,12 @@ function bindEvents() {
       return;
     }
 
-    if (panel.tagName?.toLowerCase() === "details") {
+    const isDetailsPanel = panel.tagName?.toLowerCase() === "details";
+    if (isDetailsPanel) {
       panel.open = true;
     }
-    panel.scrollIntoView({ behavior: "smooth", block: "center" });
+    const scrollTarget = isDetailsPanel ? panel.querySelector("summary") ?? panel : panel;
+    scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 
   dom.languageSelect.addEventListener("change", (event) => {

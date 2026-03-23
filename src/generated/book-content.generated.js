@@ -8,6 +8,8 @@ export const BOOK_CHAPTERS = [
     "subtitle": "从一条线开始，理解 forward、loss 和 gradient descent",
     "blurb": "这一章是整本书的起点。我们先用最简单的模型，把“输入如何变成输出、误差如何形成、参数为什么会更新”讲透。",
     "summary": "这一章是整本书的起点。我们先用最简单的模型，把“输入如何变成输出、误差如何形成、参数为什么会更新”讲透。",
+    "readingMode": "book-first",
+    "sourceNotes": null,
     "pages": [
       {
         "id": "opening",
@@ -60,6 +62,44 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "为什么从一条线开始？",
+        "coreIdea": "先把线性回归看成一把会旋转、会平移、会被数据拉着走的“可学习直尺”。",
+        "figureCaption": "为什么从一条线开始：先看图中的线和散点位置关系。",
+        "walkthrough": [
+          "先看图中的线和散点位置关系。",
+          "再看 Data Flow 里的当前节点是什么。",
+          "最后再回头看公式卡片，不要反过来。",
+          "问题设定"
+        ],
+        "vocabulary": [
+          {
+            "term": "模型定义",
+            "meaning": "输入 x 经过线性变换，得到预测值 ŷ。"
+          },
+          {
+            "term": "学习目标",
+            "meaning": "训练就是不断调整 w 和 b，让图上的直线贴近真实样本。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要把图和公式对应起来。",
+            "correction": "线性回归先教你看懂“参数如何改变函数形状”。"
+          }
+        ],
+        "diagram": {
+          "focus": "先看图中的线和散点位置关系。",
+          "caption": "为什么从一条线开始：先看图中的线和散点位置关系。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "先看图中的线和散点位置关系。",
+          "再看 Data Flow 里的当前节点是什么。",
+          "最后再回头看公式卡片，不要反过来。",
+          "试着切换不同数据集，看看同一个模型在不同散点分布下会面临什么样的拟合难度。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "intuition",
@@ -105,13 +145,42 @@ export const BOOK_CHAPTERS = [
         "principles": [],
         "observe": [
           "看当前样本的 x 是如何映射到预测点上的。",
-          "对照 Model Flow 里的 forward 节点。",
-          "再点 Math，确认这一步代入的是哪些数值。"
+          "对照数据流图里的前向阶段。",
+          "再点公式步骤，确认这一步代入的是哪些数值。"
         ],
         "experimentPrompt": "把 Learning Rate 先放一边，只看 forward。问自己：如果 w 更大，图上的线会往哪里转？",
         "takeaways": [],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "一次 forward 里发生了什么？",
+        "coreIdea": "这一页重点不是 Loss，而是输入如何顺着数据流走成预测值。",
+        "figureCaption": "一次 forward 里发生了什么：看当前样本的 x 是如何映射到预测点上的。",
+        "walkthrough": [
+          "看当前样本的 x 是如何映射到预测点上的。",
+          "对照数据流图里的前向阶段。",
+          "再点公式步骤，确认这一步代入的是哪些数值。",
+          "从输入到输出"
+        ],
+        "vocabulary": [
+          {
+            "term": "前向计算",
+            "meaning": "这是线性回归里最核心的一步，也是后续 loss 和 gradient 的起点。"
+          }
+        ],
+        "misconceptions": [],
+        "diagram": {
+          "focus": "看当前样本的 x 是如何映射到预测点上的。",
+          "caption": "一次 forward 里发生了什么：看当前样本的 x 是如何映射到预测点上的。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "看当前样本的 x 是如何映射到预测点上的。",
+          "对照数据流图里的前向阶段。",
+          "再点公式步骤，确认这一步代入的是哪些数值。",
+          "把 Learning Rate 先放一边，只看 forward。问自己：如果 w 更大，图上的线会往哪里转？"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "visual",
@@ -153,13 +222,45 @@ export const BOOK_CHAPTERS = [
         "principles": [],
         "observe": [
           "看预测点和真实点之间的距离。",
-          "看 Trace 卡片里 error 是如何代入数值的。",
+          "看逐步推导里 error 是如何代入数值的。",
           "理解为什么 Loss 越大，说明这一步越“错”。"
         ],
         "experimentPrompt": "选一个明显偏离拟合线的样本，观察它的 Loss 为什么会更大。",
         "takeaways": [],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "Loss 不是公式，而是“差了多少”？",
+        "coreIdea": "Loss 的作用是把“图上差得远不远”变成可以优化的数字。",
+        "figureCaption": "Loss 不是公式，而是“差了多少”：看预测点和真实点之间的距离。",
+        "walkthrough": [
+          "看预测点和真实点之间的距离。",
+          "看逐步推导里 error 是如何代入数值的。",
+          "理解为什么 Loss 越大，说明这一步越“错”。"
+        ],
+        "vocabulary": [
+          {
+            "term": "误差",
+            "meaning": "预测值比真实值高还是低，都会先体现在 error 上。"
+          },
+          {
+            "term": "平方损失",
+            "meaning": "误差越大，loss 越大，模型越需要调整参数。"
+          }
+        ],
+        "misconceptions": [],
+        "diagram": {
+          "focus": "看预测点和真实点之间的距离。",
+          "caption": "Loss 不是公式，而是“差了多少”：看预测点和真实点之间的距离。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "看预测点和真实点之间的距离。",
+          "看逐步推导里 error 是如何代入数值的。",
+          "理解为什么 Loss 越大，说明这一步越“错”。",
+          "选一个明显偏离拟合线的样本，观察它的 Loss 为什么会更大。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "math",
@@ -195,14 +296,42 @@ export const BOOK_CHAPTERS = [
         ],
         "principles": [],
         "observe": [
-          "看 Pseudo Code 里 backward 这一步。",
-          "确认哪些参数在 Debugger 里被高亮。",
+          "先看推导步骤里的 backward 这一步。",
+          "确认哪些参数在内部状态里被高亮。",
           "在图上想象：如果参数按当前 gradient 更新，线会往哪里移动。"
         ],
         "experimentPrompt": "观察高 Loss 样本对应的 gradient，和低 Loss 样本有什么直觉差异。",
         "takeaways": [],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "gradient 在告诉模型往哪边动？",
+        "coreIdea": "真正推动学习的不是 Loss 本身，而是 Loss 对参数的导数。",
+        "figureCaption": "gradient 在告诉模型往哪边动：先看推导步骤里的 backward 这一步。",
+        "walkthrough": [
+          "先看推导步骤里的 backward 这一步。",
+          "确认哪些参数在内部状态里被高亮。",
+          "在图上想象：如果参数按当前 gradient 更新，线会往哪里移动。"
+        ],
+        "vocabulary": [
+          {
+            "term": "梯度",
+            "meaning": "误差会通过链式法则传到参数上。"
+          }
+        ],
+        "misconceptions": [],
+        "diagram": {
+          "focus": "先看推导步骤里的 backward 这一步。",
+          "caption": "gradient 在告诉模型往哪边动：先看推导步骤里的 backward 这一步。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "先看推导步骤里的 backward 这一步。",
+          "确认哪些参数在内部状态里被高亮。",
+          "在图上想象：如果参数按当前 gradient 更新，线会往哪里移动。",
+          "观察高 Loss 样本对应的 gradient，和低 Loss 样本有什么直觉差异。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "backward",
           "teachingTab": "pseudocode",
@@ -233,7 +362,7 @@ export const BOOK_CHAPTERS = [
         "principles": [],
         "observe": [
           "重点看 update 阶段的 before / after 差异。",
-          "对比 Focus Guide、图形区和 Trace 卡片。",
+          "对比阅读顺序提示、图形区和逐步推导。",
           "如果线变差了，先不要怪公式，先看 Learning Rate 是否过大。"
         ],
         "experimentPrompt": "把自定义 CSV 改成一条你自己设计的数据线，再观察模型是否能快速收敛。",
@@ -244,6 +373,34 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "动手实验：让一条线学会拟合？",
+        "coreIdea": "现在进入实验页。这里的目标不是看懂一页，而是自己驱动训练过程。",
+        "figureCaption": "动手实验：让一条线学会拟合：重点看 update 阶段的 before / after 差异。",
+        "walkthrough": [
+          "重点看 update 阶段的 before / after 差异。",
+          "对比阅读顺序提示、图形区和逐步推导。",
+          "如果线变差了，先不要怪公式，先看 Learning Rate 是否过大。"
+        ],
+        "vocabulary": [],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要把图和公式对应起来。",
+            "correction": "先比较 update 前后曲线，而不是先看数字。"
+          }
+        ],
+        "diagram": {
+          "focus": "重点看 update 阶段的 before / after 差异。",
+          "caption": "动手实验：让一条线学会拟合：重点看 update 阶段的 before / after 差异。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "重点看 update 阶段的 before / after 差异。",
+          "对比阅读顺序提示、图形区和逐步推导。",
+          "如果线变差了，先不要怪公式，先看 Learning Rate 是否过大。",
+          "把自定义 CSV 改成一条你自己设计的数据线，再观察模型是否能快速收敛。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "update",
           "teachingTab": "mistake",
@@ -293,6 +450,113 @@ export const BOOK_CHAPTERS = [
     "subtitle": "从局部感受野、padding、stride 到 receptive field",
     "blurb": "这一章不把 CNN 当黑箱，而是把它拆成会动的教材页：为什么图像不适合直接全连接、卷积到底在算什么、padding 和 stride 改变了什么、receptive field 为什么决定模型能看多远。",
     "summary": "这一章不把 CNN 当黑箱，而是把它拆成会动的教材页：为什么图像不适合直接全连接、卷积到底在算什么、padding 和 stride 改变了什么、receptive field 为什么决定模型能看多远。",
+    "readingMode": "book-first",
+    "sourceNotes": {
+      "sourcePdf": "tmp/nndl-book.pdf",
+      "sourceTitle": "《神经网络与深度学习》",
+      "sourceFile": "content/source/nndl/cnn.md",
+      "pages": [],
+      "chapterPages": [
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141
+      ],
+      "chapterPageList": "120-141",
+      "rationale": "",
+      "excerpts": [],
+      "sectionMappings": [
+        {
+          "id": "opening",
+          "title": "1. 为什么图像不能只靠全连接",
+          "pages": [
+            120,
+            126,
+            127
+          ],
+          "rationale": "Use the chapter introduction plus the '用卷积来代替全连接' section to anchor local connectivity and parameter sharing."
+        },
+        {
+          "id": "convolution",
+          "title": "2. convolution 到底在算什么",
+          "pages": [
+            121,
+            122,
+            123
+          ],
+          "rationale": "Pull the convolution definition pages so the draft can explain patch, kernel, and response map as one process."
+        },
+        {
+          "id": "padding",
+          "title": "3. padding 为什么不是随手补零",
+          "pages": [
+            124
+          ],
+          "rationale": "Reuse the stride and zero-padding variants page for the boundary-preservation explanation."
+        },
+        {
+          "id": "stride",
+          "title": "4. stride 在决定扫描步长",
+          "pages": [
+            124
+          ],
+          "rationale": "The same convolution-variants page also grounds the stride sampling story."
+        },
+        {
+          "id": "feature-map",
+          "title": "5. feature map 和 pooling 在保留什么",
+          "pages": [
+            127,
+            128,
+            129,
+            130
+          ],
+          "rationale": "Use the convolution-layer and pooling-layer pages to connect detectors, feature maps, and strongest evidence."
+        },
+        {
+          "id": "receptive-field",
+          "title": "6. receptive field 决定模型到底能看多远",
+          "pages": [
+            140
+          ],
+          "rationale": "Use the dilated-convolution page because it explicitly discusses increasing receptive field."
+        },
+        {
+          "id": "backprop",
+          "title": "7. filter 是怎么被学会的",
+          "pages": [
+            131
+          ],
+          "rationale": "Anchor the learning story in the convolution parameter-learning section."
+        },
+        {
+          "id": "lab",
+          "title": "8. 动手实验：改一张图，看看 CNN 会怎么看",
+          "pages": [
+            141
+          ],
+          "rationale": "Point the lab page back to the chapter summary so the experiment stays tied to the canonical concepts."
+        }
+      ]
+    },
     "pages": [
       {
         "id": "opening",
@@ -362,6 +626,83 @@ export const BOOK_CHAPTERS = [
           "body": "这一页最重要的不是背三条公式，而是看清楚约束是怎样一步步加上去的：先从全连接出发，再限制局部连接，最后再共享参数。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "为什么图像不能只靠全连接？",
+        "coreIdea": "CNN 的起点不是公式本身，而是两个问题：图像有局部结构，而且同一种模式换位置后仍然应该被识别。",
+        "figureCaption": "为什么图像不能只靠全连接：先看 Input Patch 和 kernel，不要一上来就看最终分类。",
+        "walkthrough": [
+          "先看 Input Patch 和 kernel，不要一上来就看最终分类。",
+          "理解 kernel 的工作更像“局部模式探测器”，不是整图分类器。",
+          "把这页的三组公式和图里的 patch、kernel、feature map 对起来。",
+          "一、全连接对图像为什么笨重"
+        ],
+        "vocabulary": [
+          {
+            "term": "全连接图像映射",
+            "meaning": "每个输出位置都依赖整张图，参数既随输出位置变化，也随输入位置变化。"
+          },
+          {
+            "term": "局部性约束",
+            "meaning": "只保留当前位置附近的小窗口，不再连接整张图。"
+          },
+          {
+            "term": "参数共享后的卷积",
+            "meaning": "同一组 kernel 在所有位置复用，这一步就得到了卷积。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「为什么图像不能只靠全连接」的定义就够了。",
+            "correction": "这一页最重要的不是背三条公式，而是看清楚约束是怎样一步步加上去的：先从全连接出发，再限制局部连接，最后再共享参数。"
+          },
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "卷积不是“更复杂的全连接”，而是把图像先验写进模型。"
+          }
+        ],
+        "diagram": {
+          "focus": "先看 Input Patch 和 kernel，不要一上来就看最终分类。",
+          "caption": "为什么图像不能只靠全连接：先看 Input Patch 和 kernel，不要一上来就看最终分类。",
+          "sourcePages": [
+            120,
+            126,
+            127
+          ]
+        },
+        "furtherInspection": [
+          "先看 Input Patch 和 kernel，不要一上来就看最终分类。",
+          "理解 kernel 的工作更像“局部模式探测器”，不是整图分类器。",
+          "把这页的三组公式和图里的 patch、kernel、feature map 对起来。",
+          "先只看 patch 和 kernel，试着用语言描述这个 kernel 更像在找竖线还是横线。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            120,
+            126,
+            127
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the chapter introduction plus the '用卷积来代替全连接' section to anchor local connectivity and parameter sharing.",
+          "excerpts": [
+            {
+              "page": 120,
+              "text": "第 5 章卷积神经网络一切都应该尽可能地简单， 但不能过于简单 ． —— 艾伯特 · 爱因斯坦 （ Albert Einstein ） 卷积神经网络 （ Convolutional Neural Network， CNN 或 ConvNet ） 是一种具有局部连接、 权重共享等特性的深层前馈神经网络 ． 卷积神经网络最早主要是用来处理图像信息 ． 在用全连…"
+            },
+            {
+              "page": 126,
+              "text": "5.2 卷积神经网络 2021 年 5 月 18 日 111 = 𝑀−𝑈+1 ∑ 𝑖=1 𝑁−𝑉 +1 ∑ 𝑗=1 𝑤 𝑠−𝑖+1,𝑡−𝑗+1 𝜕𝑓(𝒀) 𝜕𝑦 𝑖𝑗 , (5.19) 其中当 (𝑠 − 𝑖 + 1) < 1， 或 (𝑠 − 𝑖 + 1) > 𝑈 ， 或 (𝑡 − 𝑗 + 1) < 1， 或…"
+            },
+            {
+              "page": 127,
+              "text": "5.2 卷积神经网络 2021 年 5 月 18 日 112 (a) 全连接层 (b) 卷积层图 5.5 全连接层和卷积层对比享可以理解为一个卷积核只捕捉输入数据中的一种特定的局部特征 ． 因此， 如果要提取多种特征就需要使用多个不同的卷积核 ． 由于局部连接和权重共享， 卷积层的参数只有一个 𝐾 维的权重 𝒘 (𝑙) 和 1 维的偏置 𝑏 (𝑙…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "intuition",
@@ -427,7 +768,7 @@ export const BOOK_CHAPTERS = [
           "这个 patch 为什么会让某个 feature map 响应更高。",
           "公式里的乘法和求和，对应图里的哪一块区域。"
         ],
-        "experimentPrompt": "切到 Math，看一眼局部打分，再回到图里找它对应的 patch。",
+        "experimentPrompt": "切到公式步骤，看一眼局部打分，再回到图里找它对应的 patch。",
         "takeaways": [
           "卷积先是“局部打分”，后面才是“整图判断”。",
           "feature map 记录的是“哪里像某种模式”。",
@@ -438,6 +779,83 @@ export const BOOK_CHAPTERS = [
           "body": "先盯住一个 patch，把这一次局部匹配看懂；再把这种匹配想象成在整张图上重复执行。这样 feature map 的含义会一下子清楚。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "convolution 到底在算什么？",
+        "coreIdea": "这一页的目标，是把 kernel、patch、feature map 的关系从“名词”变成“过程”。",
+        "figureCaption": "convolution 到底在算什么：当前高亮的是哪个 patch。",
+        "walkthrough": [
+          "当前高亮的是哪个 patch。",
+          "这个 patch 为什么会让某个 feature map 响应更高。",
+          "公式里的乘法和求和，对应图里的哪一块区域。",
+          "一、局部匹配"
+        ],
+        "vocabulary": [
+          {
+            "term": "单位置卷积",
+            "meaning": "当前位置的输出，是 kernel 和当前 patch 逐元素相乘再求和。"
+          },
+          {
+            "term": "激活",
+            "meaning": "ReLU 保留正响应，让真正匹配的局部模式更突出。"
+          },
+          {
+            "term": "整张特征图",
+            "meaning": "把单位置的局部打分在所有空间位置重复执行，就得到整张 feature map。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「convolution 到底在算什么」的定义就够了。",
+            "correction": "先盯住一个 patch，把这一次局部匹配看懂；再把这种匹配想象成在整张图上重复执行。这样 feature map 的含义会一下子清楚。"
+          },
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "卷积先是“局部打分”，后面才是“整图判断”。"
+          }
+        ],
+        "diagram": {
+          "focus": "当前高亮的是哪个 patch。",
+          "caption": "convolution 到底在算什么：当前高亮的是哪个 patch。",
+          "sourcePages": [
+            121,
+            122,
+            123
+          ]
+        },
+        "furtherInspection": [
+          "当前高亮的是哪个 patch。",
+          "这个 patch 为什么会让某个 feature map 响应更高。",
+          "公式里的乘法和求和，对应图里的哪一块区域。",
+          "切到公式步骤，看一眼局部打分，再回到图里找它对应的 patch。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            121,
+            122,
+            123
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Pull the convolution definition pages so the draft can explain patch, kernel, and response map as one process.",
+          "excerpts": [
+            {
+              "page": 121,
+              "text": "5.1 卷积 2021 年 5 月 18 日 106 聚 ． 这些特性使得卷积神经网络具有一定程度上的平移、 缩放和旋转不变性 ． 和前馈神经网络相比， 卷积神经网络的参数更少 ． 卷积神经网络主要使用在图像和视频分析的各种任务 （比如图像分类、 人脸识别、 物体识别、 图像分割等） 上， 其准确率一般也远远超出了其他的神经网络模型 ． 近年来卷积神经网络…"
+            },
+            {
+              "page": 122,
+              "text": "5.1 卷积 2021 年 5 月 18 日 107 当令滤波器 𝒘 = [1, −2, 1] 时， 可以近似实现对信号序列的二阶微分， 即这里将 𝑥(𝑡) = 𝑥 𝑡 看作关于时间 𝑡 的函数 ． 参见习题 5-1 ． 𝑥 ″ (𝑡) = 𝑥(𝑡 + 1) + 𝑥(𝑡 − 1) − 2𝑥(𝑡). (5.6) 图 5.1 给出了…"
+            },
+            {
+              "page": 123,
+              "text": "5.1 卷积 2021 年 5 月 18 日 108 在图像处理中常用的均值滤波 （ Mean Filter ） 就是一种二维卷积， 将当前位置的像素值设为滤波器窗口中所有像素的平均值， 即 𝑤 𝑢𝑣 = 1 𝑈𝑉 ． 在图像处理中， 卷积经常作为特征提取的有效方法 ． 一幅图像在经过卷积操作后得到结果称为特征映射 （ Feature Map ）…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "visual",
@@ -519,6 +937,75 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "padding 为什么不是随手补零？",
+        "coreIdea": "padding 的作用不是把图补大，而是控制边界信息是否被过早丢掉。",
+        "figureCaption": "padding 为什么不是随手补零：想一想图里的 patch 如果滑到边缘会发生什么。",
+        "walkthrough": [
+          "想一想图里的 patch 如果滑到边缘会发生什么。",
+          "把“边缘像素被看见几次”作为理解 padding 的入口。",
+          "对照公式里的 H_out，理解尺寸为什么会变。",
+          "一、为什么边界会吃亏"
+        ],
+        "vocabulary": [
+          {
+            "term": "输出尺寸",
+            "meaning": "不加 padding 时，卷积后空间尺寸会自然缩小。"
+          },
+          {
+            "term": "带 padding 的输出尺寸",
+            "meaning": "P 越大，特征图越不容易缩小。"
+          },
+          {
+            "term": "same padding 常见条件",
+            "meaning": "这样输出尺寸通常和输入尺寸相同。"
+          },
+          {
+            "term": "边界保护",
+            "meaning": "padding 让边缘像素也有机会被更多次卷积访问。"
+          },
+          {
+            "term": "尺寸控制",
+            "meaning": "padding 决定特征图在层与层之间缩小得有多快。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "padding 的核心是保留边界信息，不只是凑尺寸。"
+          }
+        ],
+        "diagram": {
+          "focus": "想一想图里的 patch 如果滑到边缘会发生什么。",
+          "caption": "padding 为什么不是随手补零：想一想图里的 patch 如果滑到边缘会发生什么。",
+          "sourcePages": [
+            124
+          ]
+        },
+        "furtherInspection": [
+          "想一想图里的 patch 如果滑到边缘会发生什么。",
+          "把“边缘像素被看见几次”作为理解 padding 的入口。",
+          "对照公式里的 H_out，理解尺寸为什么会变。",
+          "先想象如果这张 5×5 小图完全不做 padding，卷积核还能在边缘附近留下多少有效响应？"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            124
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Reuse the stride and zero-padding variants page for the boundary-preservation explanation.",
+          "excerpts": [
+            {
+              "page": 124,
+              "text": "5.1 卷积 2021 年 5 月 18 日 109 公式 (5.9) 可以表述为 𝒀 = 𝑾 ⊗ 𝑿 (5.10) = rot180 (𝑾) ∗ 𝑿, (5.11) 其中 ⊗ 表示互相关运算， rot180 (⋅) 表示旋转 180 度， 𝒀 ∈ ℝ 𝑀−𝑈+1,𝑁−𝑉 +1 为输出矩阵 ． 在神经网络中使用卷积是为了进行特征抽取，…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "why",
@@ -590,6 +1077,67 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "stride 在决定扫描步长？",
+        "coreIdea": "stride 控制卷积核是逐格滑动，还是跳着滑动；它改变的是采样密度。",
+        "figureCaption": "stride 在决定扫描步长：想象 kernel 是逐格还是跳格前进。",
+        "walkthrough": [
+          "想象 kernel 是逐格还是跳格前进。",
+          "把 stride 和 pooling 的作用区分开：一个是采样间隔，一个是局部汇聚。",
+          "理解为什么 stride 变大后，特征图更小。",
+          "一、stride 改变了什么"
+        ],
+        "vocabulary": [
+          {
+            "term": "带 stride 的输出尺寸",
+            "meaning": "步长 S 越大，输出特征图越小。"
+          },
+          {
+            "term": "稠密扫描",
+            "meaning": "stride = 1 时，模型对空间细节最敏感。"
+          },
+          {
+            "term": "高效下采样",
+            "meaning": "更大的 stride 可以减少计算，但会牺牲局部精度。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "stride 控制的是扫描密度，而不是卷积定义本身。"
+          }
+        ],
+        "diagram": {
+          "focus": "想象 kernel 是逐格还是跳格前进。",
+          "caption": "stride 在决定扫描步长：想象 kernel 是逐格还是跳格前进。",
+          "sourcePages": [
+            124
+          ]
+        },
+        "furtherInspection": [
+          "想象 kernel 是逐格还是跳格前进。",
+          "把 stride 和 pooling 的作用区分开：一个是采样间隔，一个是局部汇聚。",
+          "理解为什么 stride 变大后，特征图更小。",
+          "如果把当前卷积层的 stride 从 1 改成 2，你觉得 feature map 会丢掉哪些局部细节？"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            124
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "The same convolution-variants page also grounds the stride sampling story.",
+          "excerpts": [
+            {
+              "page": 124,
+              "text": "5.1 卷积 2021 年 5 月 18 日 109 公式 (5.9) 可以表述为 𝒀 = 𝑾 ⊗ 𝑿 (5.10) = rot180 (𝑾) ∗ 𝑿, (5.11) 其中 ⊗ 表示互相关运算， rot180 (⋅) 表示旋转 180 度， 𝒀 ∈ ℝ 𝑀−𝑈+1,𝑁−𝑉 +1 为输出矩阵 ． 在神经网络中使用卷积是为了进行特征抽取，…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "visual",
@@ -640,6 +1188,75 @@ export const BOOK_CHAPTERS = [
         "takeaways": [],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "feature map 和 pooling 在保留什么？",
+        "coreIdea": "feature map 保留的是“哪里像某种模式”，pooling 保留的是“最强证据”。",
+        "figureCaption": "feature map 和 pooling 在保留什么：区分原始输入和 feature map 的语义差别。",
+        "walkthrough": [
+          "区分原始输入和 feature map 的语义差别。",
+          "理解 pooling 在做“提纯”而不是“丢信息”。",
+          "看 Loss 如何和最终概率联系起来。"
+        ],
+        "vocabulary": [
+          {
+            "term": "最大池化",
+            "meaning": "取出 feature map 中最强的响应，作为该模式是否存在的证据。"
+          },
+          {
+            "term": "softmax 分类",
+            "meaning": "把不同模式的响应映射成类别概率。"
+          }
+        ],
+        "misconceptions": [],
+        "diagram": {
+          "focus": "区分原始输入和 feature map 的语义差别。",
+          "caption": "feature map 和 pooling 在保留什么：区分原始输入和 feature map 的语义差别。",
+          "sourcePages": [
+            127,
+            128,
+            129,
+            130
+          ]
+        },
+        "furtherInspection": [
+          "区分原始输入和 feature map 的语义差别。",
+          "理解 pooling 在做“提纯”而不是“丢信息”。",
+          "看 Loss 如何和最终概率联系起来。",
+          "比较两个 feature map，问自己：它们分别更像在感知什么模式？"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            127,
+            128,
+            129,
+            130
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the convolution-layer and pooling-layer pages to connect detectors, feature maps, and strongest evidence.",
+          "excerpts": [
+            {
+              "page": 127,
+              "text": "5.2 卷积神经网络 2021 年 5 月 18 日 112 (a) 全连接层 (b) 卷积层图 5.5 全连接层和卷积层对比享可以理解为一个卷积核只捕捉输入数据中的一种特定的局部特征 ． 因此， 如果要提取多种特征就需要使用多个不同的卷积核 ． 由于局部连接和权重共享， 卷积层的参数只有一个 𝐾 维的权重 𝒘 (𝑙) 和 1 维的偏置 𝑏 (𝑙…"
+            },
+            {
+              "page": 128,
+              "text": "5.2 卷积神经网络 2021 年 5 月 18 日 113 （ 3 ） 卷积核： 𝒲 ∈ ℝ 𝑈×𝑉 ×𝑃×𝐷 为四维张量， 其中每个切片矩阵 𝑾 𝑝,𝑑 ∈ ℝ 𝑈×𝑉 为一个二维卷积核， 1 ≤ 𝑝 ≤ 𝑃, 1 ≤ 𝑑 ≤ 𝐷 ． 图 5.6 给出卷积层的三维结构表示 ． 输入特征映射 𝑿 𝑑 卷积核 𝒲 𝑝 深…"
+            },
+            {
+              "page": 129,
+              "text": "5.2 卷积神经网络 2021 年 5 月 18 日 114 在输入为 𝒳 ∈ ℝ 𝑀×𝑁×𝐷 ， 输出为 𝒴 ∈ ℝ 𝑀 ′ ×𝑁 ′ ×𝑃 的卷积层中， 每一个输出特征映射都需要 𝐷 个卷积核以及一个偏置 ． 假设每个卷积核的大小为 𝑈 × 𝑉 ， 那么共需要 𝑃 × 𝐷 × (𝑈 × 𝑉) + 𝑃 个参数 ． 5.2.…"
+            },
+            {
+              "page": 130,
+              "text": "5.2 卷积神经网络 2021 年 5 月 18 日 115 1 1 2 0 0 1 1 2 0 0 1 3 0 0 1 1 输入特征映射 𝑿 𝑑 输入特征映射组 𝒳 最大汇聚 1 2 0 3 输出特征映射 𝒀 𝑑 输出特征映射组 𝒴 图 5.8 汇聚层中最大汇聚过程示例其中 𝒀 ′𝑑 为汇聚层的输出， 𝑓(⋅) 为非线性激活函数， 𝑤…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "why",
@@ -714,6 +1331,71 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "receptive field 决定模型到底能看多远？",
+        "coreIdea": "单层卷积只能看一个局部 patch，但多层叠起来之后，深层单元看到的是越来越大的区域。",
+        "figureCaption": "receptive field 决定模型到底能看多远：把当前 patch 看成浅层视角，而不是整网视角。",
+        "walkthrough": [
+          "把当前 patch 看成浅层视角，而不是整网视角。",
+          "思考：如果继续堆叠两层这样的卷积，深层节点会依赖原图多大区域。",
+          "把 receptive field 和 feature hierarchy 联系起来。",
+          "一、什么是 receptive field"
+        ],
+        "vocabulary": [
+          {
+            "term": "感受野递推",
+            "meaning": "每加一层，感受野会根据当前 kernel 大小继续扩张。"
+          },
+          {
+            "term": "跳跃间隔递推",
+            "meaning": "如果 stride 更大，深层特征在原图上的步距也会更大。"
+          },
+          {
+            "term": "浅层看纹理",
+            "meaning": "浅层 receptive field 小，适合检测边缘、角点和简单纹理。"
+          },
+          {
+            "term": "深层看语义",
+            "meaning": "深层 receptive field 大，更适合组合出部件和整体形状。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "kernel 小不代表网络看得近，关键要看堆了多少层。"
+          }
+        ],
+        "diagram": {
+          "focus": "把当前 patch 看成浅层视角，而不是整网视角。",
+          "caption": "receptive field 决定模型到底能看多远：把当前 patch 看成浅层视角，而不是整网视角。",
+          "sourcePages": [
+            140
+          ]
+        },
+        "furtherInspection": [
+          "把当前 patch 看成浅层视角，而不是整网视角。",
+          "思考：如果继续堆叠两层这样的卷积，深层节点会依赖原图多大区域。",
+          "把 receptive field 和 feature hierarchy 联系起来。",
+          "如果同样用 3×3 kernel，堆三层和只用一层，在“能看到的原图范围”上会差多少？"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            140
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the dilated-convolution page because it explicitly discusses increasing receptive field.",
+          "excerpts": [
+            {
+              "page": 140,
+              "text": "5.5 其他卷积方式 2021 年 5 月 18 日 125 微步卷积我们可以通过增加卷积操作的步长 𝑆 > 1 来实现对输入特征的下采样操作， 大幅降低特征维数 ． 同样， 我们也可以通过减少转置卷积的步长 𝑆 < 1 来实现上采样操作， 大幅提高特征维数 ． 步长 𝑆 < 1 的转置卷积也称为微步卷积 （ Fractionally-Strided…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "why",
@@ -752,7 +1434,7 @@ export const BOOK_CHAPTERS = [
         "principles": [],
         "observe": [
           "看 backward / update 阶段 kernel 的变化。",
-          "对照 Pseudo Code，确认 gradient 最终落在了哪里。",
+          "对照推导步骤，确认 gradient 最终落在了哪里。",
           "思考：为什么 filter 更新后，feature map 也会变。"
         ],
         "experimentPrompt": "反复点几次 update，观察 filter 和 feature map 是否一起变化。",
@@ -763,6 +1445,58 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "filter 是怎么被学会的？",
+        "coreIdea": "CNN 真正厉害的地方，不是有 kernel，而是 kernel 会被数据驱动着不断更新。",
+        "figureCaption": "filter 是怎么被学会的：看 backward / update 阶段 kernel 的变化。",
+        "walkthrough": [
+          "看 backward / update 阶段 kernel 的变化。",
+          "对照推导步骤，确认 gradient 最终落在了哪里。",
+          "思考：为什么 filter 更新后，feature map 也会变。"
+        ],
+        "vocabulary": [
+          {
+            "term": "卷积核更新",
+            "meaning": "学习率 η 决定每次沿梯度方向更新的步长。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "feature map 会变，是因为 kernel 先变了。"
+          }
+        ],
+        "diagram": {
+          "focus": "看 backward / update 阶段 kernel 的变化。",
+          "caption": "filter 是怎么被学会的：看 backward / update 阶段 kernel 的变化。",
+          "sourcePages": [
+            131
+          ]
+        },
+        "furtherInspection": [
+          "看 backward / update 阶段 kernel 的变化。",
+          "对照推导步骤，确认 gradient 最终落在了哪里。",
+          "思考：为什么 filter 更新后，feature map 也会变。",
+          "反复点几次 update，观察 filter 和 feature map 是否一起变化。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            131
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Anchor the learning story in the convolution parameter-learning section.",
+          "excerpts": [
+            {
+              "page": 131,
+              "text": "5.3 参数学习 2021 年 5 月 18 日 116 5.3 参数学习在卷积网络中， 参数为卷积核中权重以及偏置 ． 和全连接前馈网络类似， 卷积网络也可以通过误差反向传播算法来进行参数学习 ． 在全连接前馈神经网络中， 梯度主要通过每一层的误差项 𝛿 进行反向传播， 并进一步计算每层参数的梯度 ． 参见公式 (4.63) ． 在卷积神经网络中， 主…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "backward",
           "teachingTab": "pseudocode",
@@ -795,7 +1529,7 @@ export const BOOK_CHAPTERS = [
         "principles": [],
         "observe": [
           "重点看 update 前后 kernel 的变化。",
-          "对照 Focus Guide，确认当前该先看 patch、feature map 还是 probability。",
+          "对照阅读顺序提示，确认当前该先看 patch、feature map 还是 probability。",
           "别让公式和图分开读。"
         ],
         "experimentPrompt": "手工设计一张 5x5 图，让模型更偏向 class 1，再验证结果。",
@@ -805,6 +1539,53 @@ export const BOOK_CHAPTERS = [
           "body": "先只改 2 到 3 个像素，不要一次把整张图完全重画。这样你更容易看清“局部变化如何通过卷积传播到分类结果”。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "动手实验：改一张图，看看 CNN 会怎么看？",
+        "coreIdea": "这一页把 CNN 从“看别人解释”变成“自己做实验”。",
+        "figureCaption": "动手实验：改一张图，看看 CNN 会怎么看：重点看 update 前后 kernel 的变化。",
+        "walkthrough": [
+          "重点看 update 前后 kernel 的变化。",
+          "对照阅读顺序提示，确认当前该先看 patch、feature map 还是 probability。",
+          "别让公式和图分开读。"
+        ],
+        "vocabulary": [],
+        "misconceptions": [
+          {
+            "myth": "只要记住「动手实验：改一张图，看看 CNN 会怎么看」的定义就够了。",
+            "correction": "先只改 2 到 3 个像素，不要一次把整张图完全重画。这样你更容易看清“局部变化如何通过卷积传播到分类结果”。"
+          }
+        ],
+        "diagram": {
+          "focus": "重点看 update 前后 kernel 的变化。",
+          "caption": "动手实验：改一张图，看看 CNN 会怎么看：重点看 update 前后 kernel 的变化。",
+          "sourcePages": [
+            141
+          ]
+        },
+        "furtherInspection": [
+          "重点看 update 前后 kernel 的变化。",
+          "对照阅读顺序提示，确认当前该先看 patch、feature map 还是 probability。",
+          "别让公式和图分开读。",
+          "手工设计一张 5x5 图，让模型更偏向 class 1，再验证结果。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/cnn.md",
+          "pages": [
+            141
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Point the lab page back to the chapter summary so the experiment stays tied to the canonical concepts.",
+          "excerpts": [
+            {
+              "page": 141,
+              "text": "5.6 总结和深入阅读 2021 年 5 月 18 日 126 每两个元素之间插入 𝐷 − 1 个空洞， 卷积核的有效大小为 𝐾 ′ = 𝐾 + (𝐾 − 1) × (𝐷 − 1), (5.50) 其中 𝐷 称为膨胀率 （ Dilation Rate ） ． 当 𝐷 = 1 时卷积核为普通的卷积核 ． 图 5.18 给出了空洞卷积的示例 ．…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "update",
           "teachingTab": "mistake",
@@ -864,6 +1645,113 @@ export const BOOK_CHAPTERS = [
     "subtitle": "从时间展开、BPTT 到 LSTM 门控记忆",
     "blurb": "这一章把 RNN 当成一本真正会动的序列教材来读。重点不是背 h_t 的公式，而是看清楚信息怎样沿时间滚动、为什么最后一个状态能代表整段序列、误差如何从未来一步步传回过去，以及 LSTM 为什么要把记忆管理拆成显式门控。",
     "summary": "这一章把 RNN 当成一本真正会动的序列教材来读。重点不是背 h_t 的公式，而是看清楚信息怎样沿时间滚动、为什么最后一个状态能代表整段序列、误差如何从未来一步步传回过去，以及 LSTM 为什么要把记忆管理拆成显式门控。",
+    "readingMode": "book-first",
+    "sourceNotes": {
+      "sourcePdf": "tmp/nndl-book.pdf",
+      "sourceTitle": "《神经网络与深度学习》",
+      "sourceFile": "content/source/nndl/rnn.md",
+      "pages": [],
+      "chapterPages": [
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152,
+        153,
+        154,
+        155,
+        156,
+        157,
+        158,
+        159,
+        160,
+        161,
+        162,
+        163,
+        164
+      ],
+      "chapterPageList": "144-164",
+      "rationale": "",
+      "excerpts": [],
+      "sectionMappings": [
+        {
+          "id": "opening",
+          "title": "1. 为什么序列不能当普通样本看",
+          "pages": [
+            144,
+            145
+          ],
+          "rationale": "Use the chapter introduction and the '给网络增加记忆能力' section to motivate sequential state."
+        },
+        {
+          "id": "unroll",
+          "title": "2. 把 RNN 展开以后，数据流长什么样",
+          "pages": [
+            146,
+            147
+          ],
+          "rationale": "Ground the explanation in the simple recurrent network definition and the unrolled-time figure."
+        },
+        {
+          "id": "last-hidden",
+          "title": "3. 为什么最后一个状态能代表整段序列",
+          "pages": [
+            149,
+            150
+          ],
+          "rationale": "Use the sequence-to-class and sequence-to-sequence application pages to explain why h_T often stands in for the whole sequence."
+        },
+        {
+          "id": "bptt",
+          "title": "4. BPTT 是怎么把误差传回过去的",
+          "pages": [
+            151,
+            152,
+            153
+          ],
+          "rationale": "Use the parameter-learning section and the backward-through-time figure for the time-axis gradient story."
+        },
+        {
+          "id": "gradient-stability",
+          "title": "5. 为什么 RNN 容易梯度消失或爆炸",
+          "pages": [
+            154,
+            156
+          ],
+          "rationale": "Use the long-term dependency discussion plus the gate-network motivation page to connect instability with architectural fixes."
+        },
+        {
+          "id": "lstm-motivation",
+          "title": "6. LSTM 在补什么，为什么要加门",
+          "pages": [
+            156,
+            157
+          ],
+          "rationale": "The gate-network introduction and the first LSTM page directly motivate explicit memory control."
+        },
+        {
+          "id": "lstm-flow",
+          "title": "7. 一次 LSTM 更新里，门控和状态怎么配合",
+          "pages": [
+            157,
+            158
+          ],
+          "rationale": "Use the LSTM unit figure and compact update equations to structure the gate-by-gate walkthrough."
+        },
+        {
+          "id": "lab",
+          "title": "8. 动手实验：让 RNN 读一段趋势序列",
+          "pages": [
+            164
+          ],
+          "rationale": "Use the chapter summary to keep the experiment page aligned with sequence memory, BPTT, and gates."
+        }
+      ]
+    },
     "pages": [
       {
         "id": "opening",
@@ -930,6 +1818,81 @@ export const BOOK_CHAPTERS = [
           "body": "这一页先别急着追 h_t 的维度。先问自己：如果把序列顺序打乱，任务为什么会立刻变味？这个问题想通，RNN 的动机就稳了。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "为什么序列不能当普通样本看？",
+        "coreIdea": "RNN 的起点不是公式，而是承认序列里的先后顺序本身就是信息。",
+        "figureCaption": "为什么序列不能当普通样本看：先看时间轴，而不是先看公式。",
+        "walkthrough": [
+          "先看时间轴，而不是先看公式。",
+          "关注每个时间步的输入和 hidden state 如何一起变化。",
+          "把 h_t 当成“压缩后的过去”，不要当成普通中间层。",
+          "一、顺序本身就是特征"
+        ],
+        "vocabulary": [
+          {
+            "term": "状态更新",
+            "meaning": "当前状态由当前输入和上一时刻状态共同决定。"
+          },
+          {
+            "term": "序列条件建模",
+            "meaning": "序列任务的关键不是只看当前输入，而是根据到当前时刻为止的全部历史做判断。"
+          },
+          {
+            "term": "顺序敏感",
+            "meaning": "同一组数值按不同顺序出现，RNN 会得到不同的 hidden state。"
+          },
+          {
+            "term": "滚动记忆",
+            "meaning": "RNN 不是把过去完整存下来，而是把过去压缩进当前状态。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「为什么序列不能当普通样本看」的定义就够了。",
+            "correction": "这一页先别急着追 h_t 的维度。先问自己：如果把序列顺序打乱，任务为什么会立刻变味？这个问题想通，RNN 的动机就稳了。"
+          },
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "RNN 的输入不是单个样本，而是一串有时间顺序的样本。"
+          }
+        ],
+        "diagram": {
+          "focus": "先看时间轴，而不是先看公式。",
+          "caption": "为什么序列不能当普通样本看：先看时间轴，而不是先看公式。",
+          "sourcePages": [
+            144,
+            145
+          ]
+        },
+        "furtherInspection": [
+          "先看时间轴，而不是先看公式。",
+          "关注每个时间步的输入和 hidden state 如何一起变化。",
+          "把 h_t 当成“压缩后的过去”，不要当成普通中间层。",
+          "先在图里盯住一个时间步，问自己：如果把前一步删掉，这一步还会得到同样的状态吗？"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            144,
+            145
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the chapter introduction and the '给网络增加记忆能力' section to motivate sequential state.",
+          "excerpts": [
+            {
+              "page": 144,
+              "text": "第 6 章循环神经网络经验是智慧之父， 记忆是智慧之母 ． —— 谚语在前馈神经网络中， 信息的传递是单向的， 这种限制虽然使得网络变得更容易学习， 但在一定程度上也减弱了神经网络模型的能力 ． 在生物神经网络中， 神经元之间的连接关系要复杂得多 ． 前馈神经网络可以看作一个复杂的函数， 每次输入都是独立的， 即网络的输出只依赖于当前的输入 ． 但是在很多…"
+            },
+            {
+              "page": 145,
+              "text": "6.1 给网络增加记忆能力 2021 年 5 月 18 日 130 6.1 给网络增加记忆能力为了处理这些时序数据并利用其历史信息， 我们需要让网络具有短期记忆能力 ． 而前馈网络是一种静态网络， 不具备这种记忆能力 ． 一般来讲， 我们可以通过以下三种方法来给网络增加短期记忆能力 ． 此外， 还有一种增加记忆能力的方法是引入外部记忆单元， 参见第 8.5…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "intuition",
@@ -989,12 +1952,70 @@ export const BOOK_CHAPTERS = [
         "observe": [
           "顺着时间轴逐步看，不要在多个时间步之间来回跳。",
           "盯住 h_{t-1} 是如何流入 h_t 的。",
-          "对照 Pseudo Code，把图上的时间展开和循环写法对齐。"
+          "对照推导步骤，把图上的时间展开和循环写法对齐。"
         ],
         "experimentPrompt": "切换不同样本，观察同一套参数如何在整条序列上被反复复用。",
         "takeaways": [],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "把 RNN 展开以后，数据流长什么样？",
+        "coreIdea": "真正看懂 RNN，通常不是盯着一个循环箭头，而是把它沿时间展开。",
+        "figureCaption": "把 RNN 展开以后，数据流长什么样：顺着时间轴逐步看，不要在多个时间步之间来回跳。",
+        "walkthrough": [
+          "顺着时间轴逐步看，不要在多个时间步之间来回跳。",
+          "盯住 h_{t-1} 是如何流入 h_t 的。",
+          "对照推导步骤，把图上的时间展开和循环写法对齐。",
+          "一、共享参数"
+        ],
+        "vocabulary": [
+          {
+            "term": "展开后的递推",
+            "meaning": "每一步都把上一步的状态作为自己的输入之一。"
+          },
+          {
+            "term": "时间共享",
+            "meaning": "参数不随时间步变化，变化的是输入和状态。"
+          }
+        ],
+        "misconceptions": [],
+        "diagram": {
+          "focus": "顺着时间轴逐步看，不要在多个时间步之间来回跳。",
+          "caption": "把 RNN 展开以后，数据流长什么样：顺着时间轴逐步看，不要在多个时间步之间来回跳。",
+          "sourcePages": [
+            146,
+            147
+          ]
+        },
+        "furtherInspection": [
+          "顺着时间轴逐步看，不要在多个时间步之间来回跳。",
+          "盯住 h_{t-1} 是如何流入 h_t 的。",
+          "对照推导步骤，把图上的时间展开和循环写法对齐。",
+          "切换不同样本，观察同一套参数如何在整条序列上被反复复用。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            146,
+            147
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Ground the explanation in the simple recurrent network definition and the unrolled-time figure.",
+          "excerpts": [
+            {
+              "page": 146,
+              "text": "6.2 简单循环网络 2021 年 5 月 18 日 131 6.1.3 循环神经网络循环神经网络 （ Recurrent Neural Network， RNN ） 通过使用带自反馈的神经元， 能够处理任意长度的时序数据 ． RNN 也经常被翻译为递归神经网络 ． 这里为了区别与另外一种递归神经网络 （ Recursive Neural Network，…"
+            },
+            {
+              "page": 147,
+              "text": "6.2 简单循环网络 2021 年 5 月 18 日 132 𝒉 𝑡 = 𝑓(𝒛 𝑡 ), (6.6) 其中 𝒛 𝑡 为隐藏层的净输入， 𝑼 ∈ ℝ 𝐷×𝐷 为状态 - 状态权重矩阵， 𝑾 ∈ ℝ 𝐷×𝑀 为状态 - 输入权重矩阵， 𝒃 ∈ ℝ 𝐷 为偏置向量， 𝑓(⋅) 是非线性激活函数， 通常为 Logistic 函数或…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "visual",
@@ -1071,6 +2092,77 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "为什么最后一个状态能代表整段序列？",
+        "coreIdea": "最后一个 hidden state 不是神奇终点，而是整段序列滚动压缩后的结果。",
+        "figureCaption": "为什么最后一个状态能代表整段序列：看最后一个状态旁边的 prediction，不要只盯单个输入点。",
+        "walkthrough": [
+          "看最后一个状态旁边的 prediction，不要只盯单个输入点。",
+          "把整条时间链想成不断改写 summary 的过程。",
+          "思考：如果序列再长一倍，h_T 还可靠吗？",
+          "一、状态像滚动摘要"
+        ],
+        "vocabulary": [
+          {
+            "term": "序列级输出",
+            "meaning": "任务输出建立在最后状态之上，因此 h_T 必须携带整段序列的信息。"
+          },
+          {
+            "term": "损失",
+            "meaning": "最后输出的误差会反向影响整条时间链上的状态更新。"
+          },
+          {
+            "term": "压缩表示",
+            "meaning": "最后状态是整段历史的压缩表示，不是最后输入的孤立结果。"
+          },
+          {
+            "term": "信息瓶颈",
+            "meaning": "所有过去都挤进一个向量，序列越长，越容易丢信息。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "h_T 能代表整段序列，是因为它经历了完整的时间滚动。"
+          }
+        ],
+        "diagram": {
+          "focus": "看最后一个状态旁边的 prediction，不要只盯单个输入点。",
+          "caption": "为什么最后一个状态能代表整段序列：看最后一个状态旁边的 prediction，不要只盯单个输入点。",
+          "sourcePages": [
+            149,
+            150
+          ]
+        },
+        "furtherInspection": [
+          "看最后一个状态旁边的 prediction，不要只盯单个输入点。",
+          "把整条时间链想成不断改写 summary 的过程。",
+          "思考：如果序列再长一倍，h_T 还可靠吗？",
+          "尝试比较短序列和长序列样本，观察最后状态的分类稳定性是否一样。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            149,
+            150
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the sequence-to-class and sequence-to-sequence application pages to explain why h_T often stands in for the whole sequence.",
+          "excerpts": [
+            {
+              "page": 149,
+              "text": "6.3 应用到机器学习 2021 年 5 月 18 日 134 6.2.1.2 图灵完备图灵完备 （ Turing Completeness ） 是指一种数据操作规则， 比如一种计算机编程语言， 可以实现图灵机 （ Turing Machine ） 的所有功能， 解决所有的可计算问题 ． 图灵机是一种抽象的信息处理装置， 可以用来解决所有的可计算问题， 参…"
+            },
+            {
+              "page": 150,
+              "text": "6.3 应用到机器学习 2021 年 5 月 18 日 135 ̂𝑦 𝒉 1 𝒉 2 ⋯ 𝒉 𝑇 𝒙 1 𝒙 2 ⋯ 𝒙 𝑇 (a) 正常模式 𝒉̂ 𝑦 𝒉 1 𝒉 2 ⋯ 𝒉 𝑇 𝒙 1 𝒙 2 ⋯ 𝒙 𝑇 (b) 按时间进行平均采样模式图 6.3 序列到类别模式 6.3.2 同步的序列到序列模式同步的序列到序列模式…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "why",
@@ -1143,7 +2235,7 @@ export const BOOK_CHAPTERS = [
         ],
         "observe": [
           "看 backward 阶段时，注意误差箭头是沿时间往回走的。",
-          "对照 Math 卡片，确认共享参数为什么会累计多步梯度。",
+          "对照公式步骤，确认共享参数为什么会累计多步梯度。",
           "如果觉得难，就先固定一个时间步，观察它如何影响前一时刻。"
         ],
         "experimentPrompt": "多点几次 step，专门观察 backward 阶段的 trace，问自己：误差最先回到哪里？",
@@ -1153,6 +2245,87 @@ export const BOOK_CHAPTERS = [
           "body": "先把 BPTT 想成“把循环展开后再做普通反传”，不要一开始就追完整的偏导公式树。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "BPTT 是怎么把误差传回过去的？",
+        "coreIdea": "RNN 最难的地方常常不在 forward，而在理解误差如何沿时间逆流回去。",
+        "figureCaption": "BPTT 是怎么把误差传回过去的：看 backward 阶段时，注意误差箭头是沿时间往回走的。",
+        "walkthrough": [
+          "看 backward 阶段时，注意误差箭头是沿时间往回走的。",
+          "对照公式步骤，确认共享参数为什么会累计多步梯度。",
+          "如果觉得难，就先固定一个时间步，观察它如何影响前一时刻。",
+          "一、反向不是只回一层"
+        ],
+        "vocabulary": [
+          {
+            "term": "总梯度",
+            "meaning": "共享参数意味着所有时间步的梯度会累加到同一组参数上。"
+          },
+          {
+            "term": "时间链式法则",
+            "meaning": "后续时刻的误差会一路传播回更早的状态。"
+          },
+          {
+            "term": "长期依赖的梯度通路",
+            "meaning": "只要时间链一长，这串连乘就可能把梯度压得很小或放得很大。"
+          },
+          {
+            "term": "时间维反传",
+            "meaning": "误差会沿时间链逆流，不只是沿层级逆流。"
+          },
+          {
+            "term": "链式法则放大或缩小",
+            "meaning": "同一项导数被反复相乘，导致长期依赖难学。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「BPTT 是怎么把误差传回过去的」的定义就够了。",
+            "correction": "先把 BPTT 想成“把循环展开后再做普通反传”，不要一开始就追完整的偏导公式树。"
+          }
+        ],
+        "diagram": {
+          "focus": "看 backward 阶段时，注意误差箭头是沿时间往回走的。",
+          "caption": "BPTT 是怎么把误差传回过去的：看 backward 阶段时，注意误差箭头是沿时间往回走的。",
+          "sourcePages": [
+            151,
+            152,
+            153
+          ]
+        },
+        "furtherInspection": [
+          "看 backward 阶段时，注意误差箭头是沿时间往回走的。",
+          "对照公式步骤，确认共享参数为什么会累计多步梯度。",
+          "如果觉得难，就先固定一个时间步，观察它如何影响前一时刻。",
+          "多点几次 step，专门观察 backward 阶段的 trace，问自己：误差最先回到哪里？"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            151,
+            152,
+            153
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the parameter-learning section and the backward-through-time figure for the time-axis gradient story.",
+          "excerpts": [
+            {
+              "page": 151,
+              "text": "6.4 参数学习 2021 年 5 月 18 日 136 器 - 解码器模型可以写为 𝒉 𝑡 = 𝑓 1 (𝒉 𝑡−1 , 𝒙 𝑡 ), ∀𝑡 ∈ [1, 𝑇] (6.25) 𝒉 𝑇+𝑡 = 𝑓 2 (𝒉 𝑇+𝑡−1 ,̂ 𝒚 𝑡−1 ), ∀𝑡 ∈ [1, 𝑀] (6.26) ̂ 𝑦 𝑡 = 𝑔(𝒉 𝑇+…"
+            },
+            {
+              "page": 152,
+              "text": "6.4 参数学习 2021 年 5 月 18 日 137 6.4.1 随时间反向传播算法随时间反向传播 （ BackPropagation Through Time， BPTT ） 算法的主要思想是通过类似前馈神经网络的误差反向传播算法 [Werbos, 1990] 来计算梯度 ． BPTT 算法将循环神经网络看作一个展开的多层前馈网络， 其中 “ 每一层…"
+            },
+            {
+              "page": 153,
+              "text": "6.4 参数学习 2021 年 5 月 18 日 138 图 6.6 给出了误差项随时间进行反向传播算法的示例 ． ℒ 𝑡−2 ℒ 𝑡−1 ℒ 𝑡 𝒉 𝑡−2 𝒉 𝑡−1 𝒉 𝑡 𝒙 𝑡−2 𝒙 𝑡−1 𝒙 𝑡 𝛿 𝑡,𝑡−2 𝛿 𝑡−1,𝑡−2 𝛿 𝑡−2,𝑡−2 𝛿 𝑡,𝑡−1 𝛿 𝑡−1,𝑡…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "backward",
           "teachingTab": "math",
@@ -1229,6 +2402,77 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "为什么 RNN 容易梯度消失或爆炸？",
+        "coreIdea": "一旦把 BPTT 看成很长的链式乘法，就能自然理解为什么 RNN 对长期依赖不友好。",
+        "figureCaption": "为什么 RNN 容易梯度消失或爆炸：把 backward 理解成沿时间链的连续乘法。",
+        "walkthrough": [
+          "把 backward 理解成沿时间链的连续乘法。",
+          "想象如果序列翻倍，梯度稳定性会怎样变化。",
+          "把这一页和前一页的 BPTT 连起来读，不要拆开。",
+          "一、长期依赖为什么难学"
+        ],
+        "vocabulary": [
+          {
+            "term": "长期梯度近似",
+            "meaning": "越长的时间跨度，对应越长的一串导数连乘。"
+          },
+          {
+            "term": "消失与爆炸",
+            "meaning": "范数长期太小会消失，长期太大会爆炸。"
+          },
+          {
+            "term": "长链相乘",
+            "meaning": "时间步越多，梯度就越像一串重复乘法，数值更容易失真。"
+          },
+          {
+            "term": "记忆与稳定的矛盾",
+            "meaning": "想记久一点，就得让信息别快速衰减；但太敏感又会让训练失控。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "梯度问题是时间链过长带来的结构性难点。"
+          }
+        ],
+        "diagram": {
+          "focus": "把 backward 理解成沿时间链的连续乘法。",
+          "caption": "为什么 RNN 容易梯度消失或爆炸：把 backward 理解成沿时间链的连续乘法。",
+          "sourcePages": [
+            154,
+            156
+          ]
+        },
+        "furtherInspection": [
+          "把 backward 理解成沿时间链的连续乘法。",
+          "想象如果序列翻倍，梯度稳定性会怎样变化。",
+          "把这一页和前一页的 BPTT 连起来读，不要拆开。",
+          "观察长一点的序列时 loss 和状态更新是否变得更难稳定，再回头理解梯度问题。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            154,
+            156
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the long-term dependency discussion plus the gate-network motivation page to connect instability with architectural fixes.",
+          "excerpts": [
+            {
+              "page": 154,
+              "text": "6.5 长程依赖问题 2021 年 5 月 18 日 139 = (𝕀 𝑖 ([𝒉 𝑡 ] 𝑗 ) + 𝜕𝒉 𝑡 𝜕𝑢 𝑖𝑗 𝑼 T ) ⊙ (𝑓 ′ (𝒛 𝑡+1 )) T , (6.45) 其中 𝕀 𝑖 (𝑥) 是除了第 𝑖 行值为 𝑥 外， 其余都为 0 的行向量 ． RTRL 算法从第 1 个时刻开始， 除…"
+            },
+            {
+              "page": 156,
+              "text": "6.6 基于门控的循环神经网络 2021 年 5 月 18 日 141 这样 𝒉 𝑡 和 𝒉 𝑡−1 之间为既有线性关系， 也有非线性关系， 并且可以缓解梯度消失问题 ． 但这种改进依然存在两个问题： （ 1 ） 梯度爆炸问题： 参见习题 6-3 ． 令 𝒛 𝑘 = 𝑼𝒉 𝑘−1 + 𝑾𝒙 𝑘 + 𝒃 为在第 𝑘 时刻函数 𝑔…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "backward",
           "teachingTab": "why",
@@ -1311,6 +2555,81 @@ export const BOOK_CHAPTERS = [
           "body": "先把三个 gate 当成“保留 / 写入 / 输出”三个动作，不要一开始追全部矩阵维度。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "LSTM 在补什么，为什么要加门？",
+        "coreIdea": "LSTM 不是把 RNN 变复杂，而是显式地把“写入、保留、读取”这些动作拆成门控决策。",
+        "figureCaption": "LSTM 在补什么，为什么要加门：先理解 gate 的职责，再去看公式。",
+        "walkthrough": [
+          "先理解 gate 的职责，再去看公式。",
+          "把 LSTM 想成会管理记忆的 RNN，而不是全新的范式。",
+          "重点看 cell state 这条长期通路和普通 hidden state 的区别。",
+          "一、从单一状态到记忆单元"
+        ],
+        "vocabulary": [
+          {
+            "term": "遗忘门",
+            "meaning": "决定旧记忆 c_{t-1} 有多少被保留。"
+          },
+          {
+            "term": "输入门",
+            "meaning": "决定候选信息有多少被写入 cell state。"
+          },
+          {
+            "term": "输出门",
+            "meaning": "决定当前时刻向外暴露多少内部记忆。"
+          },
+          {
+            "term": "显式记忆管理",
+            "meaning": "LSTM 把保留、写入、输出拆成独立门控，而不是全靠一个状态方程硬扛。"
+          },
+          {
+            "term": "长期通路",
+            "meaning": "cell state 提供了一条更适合长期保留信息的路径。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「LSTM 在补什么，为什么要加门」的定义就够了。",
+            "correction": "先把三个 gate 当成“保留 / 写入 / 输出”三个动作，不要一开始追全部矩阵维度。"
+          }
+        ],
+        "diagram": {
+          "focus": "先理解 gate 的职责，再去看公式。",
+          "caption": "LSTM 在补什么，为什么要加门：先理解 gate 的职责，再去看公式。",
+          "sourcePages": [
+            156,
+            157
+          ]
+        },
+        "furtherInspection": [
+          "先理解 gate 的职责，再去看公式。",
+          "把 LSTM 想成会管理记忆的 RNN，而不是全新的范式。",
+          "重点看 cell state 这条长期通路和普通 hidden state 的区别。",
+          "如果你要记住序列开头的一个关键信号，哪一个 gate 最应该帮忙？先凭直觉回答，再看公式。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            156,
+            157
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "The gate-network introduction and the first LSTM page directly motivate explicit memory control.",
+          "excerpts": [
+            {
+              "page": 156,
+              "text": "6.6 基于门控的循环神经网络 2021 年 5 月 18 日 141 这样 𝒉 𝑡 和 𝒉 𝑡−1 之间为既有线性关系， 也有非线性关系， 并且可以缓解梯度消失问题 ． 但这种改进依然存在两个问题： （ 1 ） 梯度爆炸问题： 参见习题 6-3 ． 令 𝒛 𝑘 = 𝑼𝒉 𝑘−1 + 𝑾𝒙 𝑘 + 𝒃 为在第 𝑘 时刻函数 𝑔…"
+            },
+            {
+              "page": 157,
+              "text": "6.6 基于门控的循环神经网络 2021 年 5 月 18 日 142 在每个时刻 𝑡 ， LSTM 网络的内部状态 𝒄 𝑡 记录了到当前时刻为止的历史信息 ． 门控机制在数字电路中， 门 （ gate ） 为一个二值变量 {0, 1} ， 0 代表关闭状态， 不许任何信息通过； 1 代表开放状态， 允许所有信息通过 ． LSTM 网络引入门控机制…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "intuition",
@@ -1383,6 +2702,73 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "一次 LSTM 更新里，门控和状态怎么配合？",
+        "coreIdea": "这一页把 LSTM 的门控动作串成完整的数据流，而不是把公式当成独立部件硬背。",
+        "figureCaption": "一次 LSTM 更新里，门控和状态怎么配合：顺着“forget -> input -> cell update -> output”这条链读。",
+        "walkthrough": [
+          "顺着“forget -> input -> cell update -> output”这条链读。",
+          "不要把 c_t 和 h_t 混为一谈。",
+          "把图上的状态流和公式里的更新顺序一一对齐。",
+          "一、先更新 cell state"
+        ],
+        "vocabulary": [
+          {
+            "term": "候选记忆",
+            "meaning": "这是当前时刻准备写入的新内容候选。"
+          },
+          {
+            "term": "记忆更新",
+            "meaning": "旧记忆保留一部分，新候选写入一部分。"
+          },
+          {
+            "term": "隐藏状态输出",
+            "meaning": "对外暴露的是被输出门调制过的当前记忆。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "LSTM 的核心数据流是先管 memory，再决定对外输出。"
+          }
+        ],
+        "diagram": {
+          "focus": "顺着“forget -> input -> cell update -> output”这条链读。",
+          "caption": "一次 LSTM 更新里，门控和状态怎么配合：顺着“forget -> input -> cell update -> output”这条链读。",
+          "sourcePages": [
+            157,
+            158
+          ]
+        },
+        "furtherInspection": [
+          "顺着“forget -> input -> cell update -> output”这条链读。",
+          "不要把 c_t 和 h_t 混为一谈。",
+          "把图上的状态流和公式里的更新顺序一一对齐。",
+          "如果 forget gate 接近 1、input gate 接近 0，会发生什么？先用语言解释，再对照公式。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            157,
+            158
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the LSTM unit figure and compact update equations to structure the gate-by-gate walkthrough.",
+          "excerpts": [
+            {
+              "page": 157,
+              "text": "6.6 基于门控的循环神经网络 2021 年 5 月 18 日 142 在每个时刻 𝑡 ， LSTM 网络的内部状态 𝒄 𝑡 记录了到当前时刻为止的历史信息 ． 门控机制在数字电路中， 门 （ gate ） 为一个二值变量 {0, 1} ， 0 代表关闭状态， 不许任何信息通过； 1 代表开放状态， 允许所有信息通过 ． LSTM 网络引入门控机制…"
+            },
+            {
+              "page": 158,
+              "text": "6.6 基于门控的循环神经网络 2021 年 5 月 18 日 143 通过 LSTM 循环单元， 整个网络可以建立较长距离的时序依赖关系 ． 公式 (6.51) ～ 公式 (6.56) 可以简洁地描述为 ⎡ ⎢ ⎢ ⎢ ⎢ ⎢ ⎢ ⎣̃ 𝒄 𝑡 𝒐 𝑡 𝒊 𝑡 𝒇 𝑡 ⎤ ⎥ ⎥ ⎥ ⎥ ⎥ ⎥ ⎦ = ⎡ ⎢ ⎢ ⎢ ⎢ ⎢ ⎢ ⎣ t…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "math",
@@ -1429,6 +2815,57 @@ export const BOOK_CHAPTERS = [
           "body": "先固定一条趋势清晰的序列，慢速点 step，观察 hidden state 是逐步变强、变弱，还是来回震荡。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "动手实验：让 RNN 读一段趋势序列？",
+        "coreIdea": "这一页把 RNN 从“会展开”推进到“会根据序列更新”。",
+        "figureCaption": "动手实验：让 RNN 读一段趋势序列：先看输入序列本身的方向感。",
+        "walkthrough": [
+          "先看输入序列本身的方向感。",
+          "再看 hidden state 在各时间步的变化。",
+          "最后再回到 loss 和 update，确认模型在朝哪个方向修正。"
+        ],
+        "vocabulary": [],
+        "misconceptions": [
+          {
+            "myth": "只要记住「动手实验：让 RNN 读一段趋势序列」的定义就够了。",
+            "correction": "先固定一条趋势清晰的序列，慢速点 step，观察 hidden state 是逐步变强、变弱，还是来回震荡。"
+          },
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "实验页的重点是看“状态如何累计”，不是只看最终分类结果。"
+          }
+        ],
+        "diagram": {
+          "focus": "先看输入序列本身的方向感。",
+          "caption": "动手实验：让 RNN 读一段趋势序列：先看输入序列本身的方向感。",
+          "sourcePages": [
+            164
+          ]
+        },
+        "furtherInspection": [
+          "先看输入序列本身的方向感。",
+          "再看 hidden state 在各时间步的变化。",
+          "最后再回到 loss 和 update，确认模型在朝哪个方向修正。",
+          "把自定义 CSV 改成一段先升后降或先降后升的趋势序列，再观察 RNN 的状态链如何响应。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/rnn.md",
+          "pages": [
+            164
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the chapter summary to keep the experiment page aligned with sequence memory, BPTT, and gates.",
+          "excerpts": [
+            {
+              "page": 164,
+              "text": "6.9 总结和深入阅读 2021 年 5 月 18 日 149 图神经网络 （ Graph Neural Network， GNN ） 是将消息传递的思想扩展到图结构数据上的神经网络 ． 对于一个任意的图结构 𝐺(𝒱, ℰ) ， 其中 𝒱 表示节点集合， ℰ 表示边集合 ． 每条边表示两个节点之间的依赖关系 ． 节点之间的连接可以是有向的， 也可以是…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "update",
           "teachingTab": "mistake",
@@ -1492,6 +2929,8 @@ export const BOOK_CHAPTERS = [
     "subtitle": "从残差学习、1x1 conv、bottleneck 到深层优化",
     "blurb": "这一章把 ResNet 当成一本关于“深层网络为什么难学、为什么残差连接有效”的会动教材。重点不是记住 x + F(x) 这行式子，而是理解 identity path 怎样保住信息和梯度、1x1 conv 如何调整通道、bottleneck 为什么能在不失去表达力的前提下降低计算负担。",
     "summary": "这一章把 ResNet 当成一本关于“深层网络为什么难学、为什么残差连接有效”的会动教材。重点不是记住 x + F(x) 这行式子，而是理解 identity path 怎样保住信息和梯度、1x1 conv 如何调整通道、bottleneck 为什么能在不失去表达力的前提下降低计算负担。",
+    "readingMode": "book-first",
+    "sourceNotes": null,
     "pages": [
       {
         "id": "opening",
@@ -1554,6 +2993,52 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "网络更深，为什么反而更难学？",
+        "coreIdea": "ResNet 的起点不是更深的结构，而是一个反直觉现象：层数加深以后，训练误差也可能变差。",
+        "figureCaption": "网络更深，为什么反而更难学：先不要盯公式，先理解“深层退化”这个动机。",
+        "walkthrough": [
+          "先不要盯公式，先理解“深层退化”这个动机。",
+          "关注数据流要经过几层变换才能到输出。",
+          "把 ResNet 当成给深层网络修路，而不是单纯加模块。",
+          "一、退化不是过拟合"
+        ],
+        "vocabulary": [
+          {
+            "term": "理想情况",
+            "meaning": "如果新增层学成恒等映射，深网络至少不该比浅网络更差。"
+          },
+          {
+            "term": "现实问题",
+            "meaning": "直接逼近完整映射在深层网络里不一定容易。"
+          },
+          {
+            "term": "优化困难",
+            "meaning": "深层网络不一定表达力不够，常常是训练时找不到好路径。"
+          },
+          {
+            "term": "保留基线能力",
+            "meaning": "如果额外层至少能不伤害已有表示，深度才真正值得增加。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要把图和公式对应起来。",
+            "correction": "ResNet 要解决的是深层网络的优化问题，不只是结构堆叠问题。"
+          }
+        ],
+        "diagram": {
+          "focus": "先不要盯公式，先理解“深层退化”这个动机。",
+          "caption": "网络更深，为什么反而更难学：先不要盯公式，先理解“深层退化”这个动机。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "先不要盯公式，先理解“深层退化”这个动机。",
+          "关注数据流要经过几层变换才能到输出。",
+          "把 ResNet 当成给深层网络修路，而不是单纯加模块。",
+          "先顺着数据流看完整个 block，再问自己：如果没有 skip connection，信息会只剩哪一条路？"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "intuition",
@@ -1628,6 +3113,47 @@ export const BOOK_CHAPTERS = [
         "takeaways": [],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "y = x + F(x) 到底改了什么？",
+        "coreIdea": "残差连接不是多加一条边，而是把学习目标从“重写全部”改成“只学修正量”。",
+        "figureCaption": "y = x + F(x) 到底改了什么：看图时把主分支和 skip path 分开看。",
+        "walkthrough": [
+          "看图时把主分支和 skip path 分开看。",
+          "先理解 x 直接保留下来，再理解 F(x) 在修正什么。",
+          "不要把加法节点当成装饰，它是这章最关键的结构。",
+          "一、从 H(x) 改写为 F(x) + x"
+        ],
+        "vocabulary": [
+          {
+            "term": "残差重写",
+            "meaning": "把完整映射拆成“原输入 + 修正项”。"
+          },
+          {
+            "term": "块输出",
+            "meaning": "主分支依赖参数 W，skip path 直接传递 x。"
+          },
+          {
+            "term": "学习残差",
+            "meaning": "比起直接拟合 H(x)，先拟合 F(x)=H(x)-x 往往更容易。"
+          },
+          {
+            "term": "恒等捷径",
+            "meaning": "输入可以沿 identity path 直接通过，主分支只负责补充变化量。"
+          }
+        ],
+        "misconceptions": [],
+        "diagram": {
+          "focus": "看图时把主分支和 skip path 分开看。",
+          "caption": "y = x + F(x) 到底改了什么：看图时把主分支和 skip path 分开看。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "看图时把主分支和 skip path 分开看。",
+          "先理解 x 直接保留下来，再理解 F(x) 在修正什么。",
+          "不要把加法节点当成装饰，它是这章最关键的结构。",
+          "切到数学和数据流面板，解释清楚哪一部分是 identity path，哪一部分是 learnable residual。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "why",
@@ -1699,6 +3225,48 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "skip connection 为什么能让优化更稳？",
+        "coreIdea": "skip path 的价值不只是在 forward 保留输入，更在于 backward 给梯度留出直接通道。",
+        "figureCaption": "skip connection 为什么能让优化更稳：看 gradient 时，先找 identity path。",
+        "walkthrough": [
+          "看 gradient 时，先找 identity path。",
+          "观察 residual 输出和最终输出之间的差异。",
+          "问自己：如果去掉加法节点，哪些信号会更脆弱？",
+          "一、前向中的稳定基线"
+        ],
+        "vocabulary": [
+          {
+            "term": "梯度拆分",
+            "meaning": "即使主分支导数不理想，identity 项仍然保留了一条直接路径。"
+          },
+          {
+            "term": "前向保真",
+            "meaning": "skip path 让已有特征更不容易在深层中被破坏。"
+          },
+          {
+            "term": "反向直通",
+            "meaning": "梯度沿 identity path 可以更稳定地回到前层。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要把图和公式对应起来。",
+            "correction": "skip connection 同时改善前向信息保留和反向梯度传播。"
+          }
+        ],
+        "diagram": {
+          "focus": "看 gradient 时，先找 identity path。",
+          "caption": "skip connection 为什么能让优化更稳：看 gradient 时，先找 identity path。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "看 gradient 时，先找 identity path。",
+          "观察 residual 输出和最终输出之间的差异。",
+          "问自己：如果去掉加法节点，哪些信号会更脆弱？",
+          "在一条样本上慢速 step，专门看 residual vector 与 final output vector 的关系。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "visual",
@@ -1760,13 +3328,51 @@ export const BOOK_CHAPTERS = [
           "关注 residual branch 参数梯度和输入梯度的区别。",
           "不要把 identity path 误解为“没有学习”，它是在保护学习。"
         ],
-        "experimentPrompt": "在当前样本上切换到 Math，解释输入梯度里为什么会多出一条直接项。",
+        "experimentPrompt": "在当前样本上切换到公式步骤，解释输入梯度里为什么会多出一条直接项。",
         "takeaways": [],
         "callout": {
           "title": "阅读提示",
           "body": "看公式时先盯住“+1”或“直接项”的存在，它对应的正是 skip connection 的优化价值。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "残差块里的梯度在往哪里走？",
+        "coreIdea": "这一页把 ResNet 的优化直觉落实到可见的梯度路径上。",
+        "figureCaption": "残差块里的梯度在往哪里走：把 backward 看成两条路同时回传，而不是一条路。",
+        "walkthrough": [
+          "把 backward 看成两条路同时回传，而不是一条路。",
+          "关注 residual branch 参数梯度和输入梯度的区别。",
+          "不要把 identity path 误解为“没有学习”，它是在保护学习。",
+          "一、主分支在学什么"
+        ],
+        "vocabulary": [
+          {
+            "term": "参数梯度",
+            "meaning": "主分支参数仍通过 residual 分支承担学习。"
+          },
+          {
+            "term": "输入梯度",
+            "meaning": "identity path 让输入梯度天然包含一条直接项。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「残差块里的梯度在往哪里走」的定义就够了。",
+            "correction": "看公式时先盯住“+1”或“直接项”的存在，它对应的正是 skip connection 的优化价值。"
+          }
+        ],
+        "diagram": {
+          "focus": "把 backward 看成两条路同时回传，而不是一条路。",
+          "caption": "残差块里的梯度在往哪里走：把 backward 看成两条路同时回传，而不是一条路。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "把 backward 看成两条路同时回传，而不是一条路。",
+          "关注 residual branch 参数梯度和输入梯度的区别。",
+          "不要把 identity path 误解为“没有学习”，它是在保护学习。",
+          "在当前样本上切换到公式步骤，解释输入梯度里为什么会多出一条直接项。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "backward",
           "teachingTab": "math",
@@ -1843,6 +3449,52 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "1x1 conv 到底在做什么？",
+        "coreIdea": "1x1 conv 不是“看不见空间”的弱卷积，而是专门在通道维上做重组和投影。",
+        "figureCaption": "1x1 conv 到底在做什么：不要盯核大小，先看输入输出通道数。",
+        "walkthrough": [
+          "不要盯核大小，先看输入输出通道数。",
+          "把 1x1 conv 理解成共享到每个空间位置的通道线性层。",
+          "注意它在主分支和 shortcut 里可能扮演不同角色。",
+          "一、空间不变，通道重组"
+        ],
+        "vocabulary": [
+          {
+            "term": "1x1 卷积",
+            "meaning": "固定空间位置 (i,j)，只在通道维上做线性组合。"
+          },
+          {
+            "term": "投影 shortcut",
+            "meaning": "当维度不匹配时，P(x) 可由 1x1 conv 实现。"
+          },
+          {
+            "term": "通道投影",
+            "meaning": "1x1 conv 的核心价值在通道维，不在空间维。"
+          },
+          {
+            "term": "便宜的重组器",
+            "meaning": "它能先压缩后计算，让后续大卷积更经济。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要把图和公式对应起来。",
+            "correction": "1x1 conv 的本质是通道变换，不是空间模式扫描。"
+          }
+        ],
+        "diagram": {
+          "focus": "不要盯核大小，先看输入输出通道数。",
+          "caption": "1x1 conv 到底在做什么：不要盯核大小，先看输入输出通道数。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "不要盯核大小，先看输入输出通道数。",
+          "把 1x1 conv 理解成共享到每个空间位置的通道线性层。",
+          "注意它在主分支和 shortcut 里可能扮演不同角色。",
+          "观察当前 block 里 residual 向量维度的变化，思考如果先压缩再展开，计算会省在哪里。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "why",
@@ -1920,6 +3572,52 @@ export const BOOK_CHAPTERS = [
           "body": "看 bottleneck 时先盯通道变化，而不是先盯卷积核尺寸。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "bottleneck block 为什么更省，又为什么没那么弱？",
+        "coreIdea": "bottleneck 的关键不是“压窄了”，而是“先降维计算，再恢复表达力”。",
+        "figureCaption": "bottleneck block 为什么更省，又为什么没那么弱：先比较进入 block 和离开 block 的维度。",
+        "walkthrough": [
+          "先比较进入 block 和离开 block 的维度。",
+          "再看最贵的 3x3 发生在什么通道规模上。",
+          "把 bottleneck 理解成“高效残差块”，不是“缩水残差块”。",
+          "一、为什么先降维再卷积"
+        ],
+        "vocabulary": [
+          {
+            "term": "bottleneck 结构",
+            "meaning": "其中 W_1 和 W_3 常对应 1x1 conv，W_2 对应 3x3 conv。"
+          },
+          {
+            "term": "典型通道变化",
+            "meaning": "先压缩，再在低维中计算，最后恢复。"
+          },
+          {
+            "term": "先压缩再处理",
+            "meaning": "把最贵的空间卷积放在低维通道空间里完成。"
+          },
+          {
+            "term": "表达力分层",
+            "meaning": "1x1 conv 负责投影与恢复，3x3 conv 负责局部空间建模。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「bottleneck block 为什么更省，又为什么没那么弱」的定义就够了。",
+            "correction": "看 bottleneck 时先盯通道变化，而不是先盯卷积核尺寸。"
+          }
+        ],
+        "diagram": {
+          "focus": "先比较进入 block 和离开 block 的维度。",
+          "caption": "bottleneck block 为什么更省，又为什么没那么弱：先比较进入 block 和离开 block 的维度。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "先比较进入 block 和离开 block 的维度。",
+          "再看最贵的 3x3 发生在什么通道规模上。",
+          "把 bottleneck 理解成“高效残差块”，不是“缩水残差块”。",
+          "如果把中间通道不压缩，3x3 conv 的代价会怎样变化？先用语言估计，再回到公式。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "visual",
@@ -1996,6 +3694,52 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "为什么更深的 ResNet 还能训稳？",
+        "coreIdea": "ResNet 真正的力量，不在单个 block，而在许多残差块串起来时仍然保留稳定的数据流和梯度流。",
+        "figureCaption": "为什么更深的 ResNet 还能训稳：把一个 block 的直觉外推到很多 block 串联的情况。",
+        "walkthrough": [
+          "把一个 block 的直觉外推到很多 block 串联的情况。",
+          "关注“保留 + 修正”的节奏，而不是单次大变形。",
+          "思考为什么这种结构更适合做超深网络。",
+          "一、深层堆叠的真实工作方式"
+        ],
+        "vocabulary": [
+          {
+            "term": "多块堆叠",
+            "meaning": "每一层都在上一层表示上加一个小修正。"
+          },
+          {
+            "term": "展开视角",
+            "meaning": "最终表示可以看成初始表示加上许多残差修正的累积。"
+          },
+          {
+            "term": "逐层修正",
+            "meaning": "深层 ResNet 往往是很多小改动叠加，而不是每层都做大幅重写。"
+          },
+          {
+            "term": "长链稳定性",
+            "meaning": "identity path 在很多 block 串联时仍然持续提供稳定通路。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要把图和公式对应起来。",
+            "correction": "ResNet 的深度优势来自许多稳定的小修正累积。"
+          }
+        ],
+        "diagram": {
+          "focus": "把一个 block 的直觉外推到很多 block 串联的情况。",
+          "caption": "为什么更深的 ResNet 还能训稳：把一个 block 的直觉外推到很多 block 串联的情况。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "把一个 block 的直觉外推到很多 block 串联的情况。",
+          "关注“保留 + 修正”的节奏，而不是单次大变形。",
+          "思考为什么这种结构更适合做超深网络。",
+          "如果每个 block 只做一点点修正，很多 block 累加起来会是什么效果？先用一句话解释再回到公式。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "intuition",
@@ -2042,6 +3786,38 @@ export const BOOK_CHAPTERS = [
           "body": "优先比较 input vector、residual vector、final vector 三者的方向与幅度，再回头读公式。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "动手实验：观察残差块是在重写，还是在修正？",
+        "coreIdea": "实验页的核心是让你亲眼区分“完整重写表示”和“在原表示上做修正”这两种学习方式。",
+        "figureCaption": "动手实验：观察残差块是在重写，还是在修正：先看输入和输出是否保持大体方向一致。",
+        "walkthrough": [
+          "先看输入和输出是否保持大体方向一致。",
+          "再看 residual 分支到底补了多少变化量。",
+          "最后再看 loss / update，确认模型在学的是修正还是重写。"
+        ],
+        "vocabulary": [],
+        "misconceptions": [
+          {
+            "myth": "只要记住「动手实验：观察残差块是在重写，还是在修正」的定义就够了。",
+            "correction": "优先比较 input vector、residual vector、final vector 三者的方向与幅度，再回头读公式。"
+          },
+          {
+            "myth": "只看最终结果，不需要把图和公式对应起来。",
+            "correction": "ResNet 的关键不是层数，而是残差式学习目标。"
+          }
+        ],
+        "diagram": {
+          "focus": "先看输入和输出是否保持大体方向一致。",
+          "caption": "动手实验：观察残差块是在重写，还是在修正：先看输入和输出是否保持大体方向一致。",
+          "sourcePages": []
+        },
+        "furtherInspection": [
+          "先看输入和输出是否保持大体方向一致。",
+          "再看 residual 分支到底补了多少变化量。",
+          "最后再看 loss / update，确认模型在学的是修正还是重写。",
+          "多次 step 后比较 residual vector 是否在逐渐变小，思考这是否意味着 block 越来越接近稳定修正。"
+        ],
+        "sourceNotes": null,
         "liveCellPreset": {
           "phase": "update",
           "teachingTab": "mistake",
@@ -2105,6 +3881,104 @@ export const BOOK_CHAPTERS = [
     "subtitle": "从 positional encoding、causal mask 到 Transformer block",
     "blurb": "这一章是整本书里最复杂的一章。目标不是一口气记住所有术语，而是把每个 token 的数据流拆开：它怎么带着位置信息进入网络、怎么提问、怎么匹配、怎么在 mask 约束下聚合、怎么经过 residual、LayerNorm 和 FFN 更新成新的表示。",
     "summary": "这一章是整本书里最复杂的一章。目标不是一口气记住所有术语，而是把每个 token 的数据流拆开：它怎么带着位置信息进入网络、怎么提问、怎么匹配、怎么在 mask 约束下聚合、怎么经过 residual、LayerNorm 和 FFN 更新成新的表示。",
+    "readingMode": "book-first",
+    "sourceNotes": {
+      "sourcePdf": "tmp/nndl-book.pdf",
+      "sourceTitle": "《神经网络与深度学习》",
+      "sourceFile": "content/source/nndl/transformer.md",
+      "pages": [],
+      "chapterPages": [
+        209,
+        210,
+        211,
+        212,
+        213,
+        214,
+        215,
+        393,
+        394,
+        395
+      ],
+      "chapterPageList": "209-215, 393-395",
+      "rationale": "",
+      "excerpts": [],
+      "sectionMappings": [
+        {
+          "id": "opening",
+          "title": "1. Transformer 在解决什么问题",
+          "pages": [
+            209,
+            213,
+            393
+          ],
+          "rationale": "Use the attention overview, self-attention motivation, and Transformer introduction to explain why relation-based routing replaces sequential bottlenecks."
+        },
+        {
+          "id": "qkv",
+          "title": "2. query / key / value 是怎么配合的",
+          "pages": [
+            211,
+            214,
+            393
+          ],
+          "rationale": "Combine key-value attention, the explicit QKV construction, and the Transformer self-attention equations."
+        },
+        {
+          "id": "positional-encoding",
+          "title": "3. positional encoding 为什么是必要的",
+          "pages": [
+            215,
+            394
+          ],
+          "rationale": "Use the self-attention position warning and the Transformer positional encoding equations."
+        },
+        {
+          "id": "causal-mask",
+          "title": "4. causal mask 为什么保证自回归",
+          "pages": [
+            395
+          ],
+          "rationale": "The masked self-attention decoder page is the cleanest source for the causal-mask explanation."
+        },
+        {
+          "id": "mask-and-heads",
+          "title": "5. multi-head 为什么不是重复计算",
+          "pages": [
+            212,
+            393,
+            395
+          ],
+          "rationale": "Use the general multi-head attention page, then connect it to Transformer self-attention and decoder masking."
+        },
+        {
+          "id": "block",
+          "title": "6. 一个 Transformer block 为什么不只有 attention",
+          "pages": [
+            394,
+            395
+          ],
+          "rationale": "Use the Add & Norm + FFN equations and the Transformer architecture figure."
+        },
+        {
+          "id": "ffn-stack",
+          "title": "7. FFN / residual / LayerNorm 为什么必须成组出现",
+          "pages": [
+            394
+          ],
+          "rationale": "The Transformer layer equations explicitly show the residual / norm / FFN stack."
+        },
+        {
+          "id": "lab",
+          "title": "8. 动手实验：盯住一个 token，完整走一遍 block",
+          "pages": [
+            393,
+            394,
+            395
+          ],
+          "rationale": "Keep the lab tied to the canonical block path: self-attention, position, masked attention, Add & Norm, and FFN."
+        }
+      ]
+    },
     "pages": [
       {
         "id": "opening",
@@ -2166,6 +4040,83 @@ export const BOOK_CHAPTERS = [
           "body": "这一章不要从“所有 token 一起看”开始。先固定一个 query token，把它当成主角，沿着它所在的那一行看完整个注意力过程。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "Transformer 在解决什么问题？",
+        "coreIdea": "Transformer 的核心不是“大模型”，而是让每个 token 都能动态决定该看谁。",
+        "figureCaption": "Transformer 在解决什么问题：先找 query token 是谁。",
+        "walkthrough": [
+          "先找 query token 是谁。",
+          "再看 attention 矩阵里它对应哪一行。",
+          "不要一开始就被多头结构吓住。",
+          "一、从顺序记忆到关系建模"
+        ],
+        "vocabulary": [
+          {
+            "term": "注意力分数",
+            "meaning": "query 和 key 的相似度决定当前位置对另一 token 的关注强度。"
+          },
+          {
+            "term": "矩阵形式",
+            "meaning": "把所有 token 的匹配和汇总并行写成矩阵乘法，就是 Transformer 的核心计算骨架。"
+          },
+          {
+            "term": "动态路由",
+            "meaning": "每个 token 都会临时决定自己该看哪些 token，而不是走一条固定路径。"
+          },
+          {
+            "term": "并行计算",
+            "meaning": "所有 token 的关系可以在同一层同时计算，这和 RNN 的逐步展开不同。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「Transformer 在解决什么问题」的定义就够了。",
+            "correction": "这一章不要从“所有 token 一起看”开始。先固定一个 query token，把它当成主角，沿着它所在的那一行看完整个注意力过程。"
+          }
+        ],
+        "diagram": {
+          "focus": "先找 query token 是谁。",
+          "caption": "Transformer 在解决什么问题：先找 query token 是谁。",
+          "sourcePages": [
+            209,
+            213,
+            393
+          ]
+        },
+        "furtherInspection": [
+          "先找 query token 是谁。",
+          "再看 attention 矩阵里它对应哪一行。",
+          "不要一开始就被多头结构吓住。",
+          "先只盯住一个 query token，别同时看所有 token。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            209,
+            213,
+            393
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the attention overview, self-attention motivation, and Transformer introduction to explain why relation-based routing replaces sequential bottlenecks.",
+          "excerpts": [
+            {
+              "page": 209,
+              "text": "8.2 注意力机制 2021 年 5 月 18 日 194 8.2 注意力机制在计算能力有限的情况下， 注意力机制也可称为注意力模型 ． 注意力机制 （ Attention Mechanism ） 作为一种资源分配方案， 将有限的计算资源用来处理更重要的信息， 是解决信息超载问题的主要手段 ． 当用神经网络来处理大量的输入信息时， 也可以借鉴人脑的注意力机…"
+            },
+            {
+              "page": 213,
+              "text": "8.3 自注意力模型 2021 年 5 月 18 日 198 其中 𝑠 𝑚,𝑛 为在解码过程的第 𝑚 步时， 𝒉 𝑚 对 𝒉 𝑛 的未归一化的注意力分布， 即 𝑠 𝑚,𝑛 = 𝒗 T tanh (𝑾𝒙 𝑛 + 𝑼𝒉 𝑚 ), ∀𝑛 ∈ [1, 𝑁], (8.15) 其中 𝒗, 𝑾, 𝑼 为可学习的参数 ． 图…"
+            },
+            {
+              "page": 393,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 378 15.6.3 基于自注意力的序列到序列模型除长程依赖问题外， 基于循环神经网络的序列到序列模型的另一个缺点是无法并行计算 ． 为了提高并行计算效率以及捕捉长距离的依赖关系， 我们可以使用自注意力模型 （ Self-Attention Model ） 来建立一个全连接的网络结构 ． 自注意力模…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "intuition",
@@ -2250,6 +4201,91 @@ export const BOOK_CHAPTERS = [
           "body": "如果你总把 attention matrix 当输出，就退回这一页。先把“权重矩阵”和“真正输出向量”分清，再继续看后面的多头和 block。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "query / key / value 是怎么配合的？",
+        "coreIdea": "query 负责提问，key 负责被匹配，value 负责真正提供内容。",
+        "figureCaption": "query / key / value 是怎么配合的：看 attention matrix 的当前高亮行。",
+        "walkthrough": [
+          "看 attention matrix 的当前高亮行。",
+          "再看对应 target token 为什么权重大。",
+          "确认 value 是在最后才被真正混合进输出。",
+          "一、Q、K、V 不是三个随意的向量"
+        ],
+        "vocabulary": [
+          {
+            "term": "线性投影",
+            "meaning": "同一个 token 先被映射成三种角色向量。"
+          },
+          {
+            "term": "注意力权重",
+            "meaning": "每一行权重之和为 1，表示当前 query 对所有位置的关注分配。"
+          },
+          {
+            "term": "注意力输出",
+            "meaning": "真正的输出不是分数矩阵，而是权重对 value 的加权和。"
+          },
+          {
+            "term": "单头矩阵写法",
+            "meaning": "把一整层所有 token 的 query、key、value 同时写成矩阵，就得到最常见的 attention 公式。"
+          },
+          {
+            "term": "先匹配，再汇总",
+            "meaning": "query 和 key 先决定“看谁”，value 再决定“带走什么”。"
+          },
+          {
+            "term": "角色分离",
+            "meaning": "把提问、匹配、内容拆开，模型更容易学出稳定的关系结构。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「query / key / value 是怎么配合的」的定义就够了。",
+            "correction": "如果你总把 attention matrix 当输出，就退回这一页。先把“权重矩阵”和“真正输出向量”分清，再继续看后面的多头和 block。"
+          }
+        ],
+        "diagram": {
+          "focus": "看 attention matrix 的当前高亮行。",
+          "caption": "query / key / value 是怎么配合的：看 attention matrix 的当前高亮行。",
+          "sourcePages": [
+            211,
+            214,
+            393
+          ]
+        },
+        "furtherInspection": [
+          "看 attention matrix 的当前高亮行。",
+          "再看对应 target token 为什么权重大。",
+          "确认 value 是在最后才被真正混合进输出。",
+          "切到 Glossary，把 Q / K / V 的职责先讲清，再回到图上。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            211,
+            214,
+            393
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Combine key-value attention, the explicit QKV construction, and the Transformer self-attention equations.",
+          "excerpts": [
+            {
+              "page": 211,
+              "text": "8.2 注意力机制 2021 年 5 月 18 日 196 注意力机制可以单独使用， 但更多地用作神经网络中的一个组件 ． 8.2.1 注意力机制的变体除了上面介绍的基本模式外， 注意力机制还存在一些变化的模型 ． 8.2.1.1 硬性注意力公式 (8.7) 提到的注意力是软性注意力， 其选择的信息是所有输入向量在注意力分布下的期望 ． 此外， 还有一种注…"
+            },
+            {
+              "page": 214,
+              "text": "8.3 自注意力模型 2021 年 5 月 18 日 199 是无法处理变长的输入序列 ． 不同的输入长度， 其连接权重的大小也是不同的 ． 自注意力也称为内部注意力 （ Intra- Attention ）． 这时我们就可以利用注意力机制来 “ 动态 ” 地生成不同连接的权重， 这就是自注意力模型 （ Self-Attention Model ）． 为了…"
+            },
+            {
+              "page": 393,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 378 15.6.3 基于自注意力的序列到序列模型除长程依赖问题外， 基于循环神经网络的序列到序列模型的另一个缺点是无法并行计算 ． 为了提高并行计算效率以及捕捉长距离的依赖关系， 我们可以使用自注意力模型 （ Self-Attention Model ） 来建立一个全连接的网络结构 ． 自注意力模…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "glossary",
@@ -2326,6 +4362,77 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "positional encoding 为什么是必要的？",
+        "coreIdea": "attention 本身只会比较 token 之间的关系，不会天然知道谁在前谁在后，所以位置信息必须被显式注入。",
+        "figureCaption": "positional encoding 为什么是必要的：先把位置编码看成给每个 token 加坐标，而不是神秘函数。",
+        "walkthrough": [
+          "先把位置编码看成给每个 token 加坐标，而不是神秘函数。",
+          "关注输入向量在进入 attention 前已经发生了一次相加。",
+          "对照可视化里 token 和位置的对应关系。",
+          "一、为什么 attention 自身不带顺序"
+        ],
+        "vocabulary": [
+          {
+            "term": "输入表示",
+            "meaning": "token embedding x_i 和位置编码 p_i 相加，形成送入 block 的输入。"
+          },
+          {
+            "term": "正弦位置编码",
+            "meaning": "不同维度用不同频率编码位置，让模型感知相对与绝对位置信号。"
+          },
+          {
+            "term": "内容 + 位置",
+            "meaning": "Transformer 输入的不是纯 token embedding，而是内容表示和位置信息的组合。"
+          },
+          {
+            "term": "顺序显式注入",
+            "meaning": "顺序不是网络自己猜到的，而是通过 positional encoding 明确提供。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "没有 positional encoding，Transformer 很难可靠区分顺序。"
+          }
+        ],
+        "diagram": {
+          "focus": "先把位置编码看成给每个 token 加坐标，而不是神秘函数。",
+          "caption": "positional encoding 为什么是必要的：先把位置编码看成给每个 token 加坐标，而不是神秘函数。",
+          "sourcePages": [
+            215,
+            394
+          ]
+        },
+        "furtherInspection": [
+          "先把位置编码看成给每个 token 加坐标，而不是神秘函数。",
+          "关注输入向量在进入 attention 前已经发生了一次相加。",
+          "对照可视化里 token 和位置的对应关系。",
+          "如果去掉所有位置信息，模型还能区分‘先看到谁，后看到谁’吗？先用一句话回答。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            215,
+            394
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the self-attention position warning and the Transformer positional encoding equations.",
+          "excerpts": [
+            {
+              "page": 215,
+              "text": "8.4 人脑中的记忆 2021 年 5 月 18 日 200 = 𝑁 ∑ 𝑗=1 𝛼 𝑛𝑗 𝒗 𝑗 (8.20) = 𝑁 ∑ 𝑗=1 softmax (𝑠(𝒌 𝑗 , 𝒒 𝑛 ))𝒗 𝑗 , (8.21) 其中 𝑛, 𝑗 ∈ [1, 𝑁] 为输出和输入向量序列的位置， 𝛼 𝑛𝑗 表示第 𝑛 个输出关注到第 𝑗…"
+            },
+            {
+              "page": 394,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 379 其中 𝒆 𝑥 𝑡 ∈ ℝ 𝐷 为词 𝑥 𝑡 的嵌入向量表示， 𝒑 𝑡 ∈ ℝ 𝐷 为位置 𝑡 的向量表示， 即位置编码 ． 𝒑 𝑡 可以作为可学习的参数， 也可以通过下面方式进行预定义： 𝒑 𝑡,2𝑖 = sin (𝑡/10000 2𝑖/𝐷 ), (15.…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "forward",
           "teachingTab": "why",
@@ -2404,6 +4511,71 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "causal mask 为什么保证自回归？",
+        "coreIdea": "在生成任务里，当前 token 只能看见过去，不能偷看未来；causal mask 就是在注意力矩阵里硬性写下这条规则。",
+        "figureCaption": "causal mask 为什么保证自回归：先看被屏蔽的未来格子，不要跳过它们。",
+        "walkthrough": [
+          "先看被屏蔽的未来格子，不要跳过它们。",
+          "确认当前 query 只能在左侧历史区域分配权重。",
+          "把 mask 理解成可见性规则，而不只是数值技巧。",
+          "一、mask 在屏蔽什么"
+        ],
+        "vocabulary": [
+          {
+            "term": "带 mask 的分数",
+            "meaning": "对未来位置，m_{i,j} 会给出极小值，阻止它们进入注意力分配。"
+          },
+          {
+            "term": "带 mask 的权重",
+            "meaning": "softmax 之后，被 mask 的未来位置权重会接近 0。"
+          },
+          {
+            "term": "未来不可见",
+            "meaning": "自回归模型必须让当前位置只能访问过去和当前信息。"
+          },
+          {
+            "term": "约束先于分配",
+            "meaning": "mask 先定义可见范围，softmax 再在可见范围内分配注意力。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "causal mask 是自回归成立的结构约束。"
+          }
+        ],
+        "diagram": {
+          "focus": "先看被屏蔽的未来格子，不要跳过它们。",
+          "caption": "causal mask 为什么保证自回归：先看被屏蔽的未来格子，不要跳过它们。",
+          "sourcePages": [
+            395
+          ]
+        },
+        "furtherInspection": [
+          "先看被屏蔽的未来格子，不要跳过它们。",
+          "确认当前 query 只能在左侧历史区域分配权重。",
+          "把 mask 理解成可见性规则，而不只是数值技巧。",
+          "固定一个 query token，指出它不能访问哪些位置，再回头解释公式里的 m_{i,j}。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            395
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "The masked self-attention decoder page is the cleanest source for the causal-mask explanation.",
+          "excerpts": [
+            {
+              "page": 395,
+              "text": "15.7 总结和深入阅读 2021 年 5 月 18 日 380 a ) 掩蔽自注意力模块： 第 𝑡 步时， 先使用自注意力模型 𝑦 0 为一个特殊符号 ． 为了提高训练效率， 这里的自注意力模型实际上是掩蔽自注意力， 即阻止每个位置看到它右边的词 ． 对已生成的前缀序列 𝒚 0∶(𝑡−1) 进行编码得到 𝑯 dec = [𝒉 dec 1 ,…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "visual",
@@ -2478,6 +4650,78 @@ export const BOOK_CHAPTERS = [
         "takeaways": [],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "multi-head 为什么不是重复计算？",
+        "coreIdea": "multi-head 的价值不在“多算几遍 attention”，而在让模型并行学习多种关系视角。",
+        "figureCaption": "multi-head 为什么不是重复计算：先看被 mask 掉的格子，不要跳过它。",
+        "walkthrough": [
+          "先看被 mask 掉的格子，不要跳过它。",
+          "再比较 Head A 和 Head B 的关注差异。",
+          "最后再看 merged output。",
+          "一、不同 head 在看不同关系"
+        ],
+        "vocabulary": [
+          {
+            "term": "带 mask 的 softmax",
+            "meaning": "被 mask 的位置会被压成极小值，从而不参与注意力分配。"
+          },
+          {
+            "term": "多头拼接",
+            "meaning": "多个 head 的结果会合并，再投影回模型维度。"
+          },
+          {
+            "term": "因果约束",
+            "meaning": "mask 先定义哪些位置根本不允许被关注，然后 softmax 再在剩余位置上分配权重。"
+          },
+          {
+            "term": "多视角建模",
+            "meaning": "不同 head 并不是重复计算，而是在平行地学习不同关系。"
+          }
+        ],
+        "misconceptions": [],
+        "diagram": {
+          "focus": "先看被 mask 掉的格子，不要跳过它。",
+          "caption": "multi-head 为什么不是重复计算：先看被 mask 掉的格子，不要跳过它。",
+          "sourcePages": [
+            212,
+            393,
+            395
+          ]
+        },
+        "furtherInspection": [
+          "先看被 mask 掉的格子，不要跳过它。",
+          "再比较 Head A 和 Head B 的关注差异。",
+          "最后再看 merged output。",
+          "选一个 query token，对比两个 head 的 top attention 是否不同。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            212,
+            393,
+            395
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the general multi-head attention page, then connect it to Transformer self-attention and decoder masking.",
+          "excerpts": [
+            {
+              "page": 212,
+              "text": "8.2 注意力机制 2021 年 5 月 18 日 197 8.2.1.3 多头注意力多头注意力 （ Multi-Head Attention ） 是利用多个查询 𝑸 = [𝒒 1 , ⋯ , 𝒒 𝑀 ] ， 来并行地从输入信息中选取多组信息 ． 每个注意力关注输入信息的不同部分 ． att ((𝑲, 𝑽), 𝑸) = att ((𝑲, \ud835…"
+            },
+            {
+              "page": 393,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 378 15.6.3 基于自注意力的序列到序列模型除长程依赖问题外， 基于循环神经网络的序列到序列模型的另一个缺点是无法并行计算 ． 为了提高并行计算效率以及捕捉长距离的依赖关系， 我们可以使用自注意力模型 （ Self-Attention Model ） 来建立一个全连接的网络结构 ． 自注意力模…"
+            },
+            {
+              "page": 395,
+              "text": "15.7 总结和深入阅读 2021 年 5 月 18 日 380 a ) 掩蔽自注意力模块： 第 𝑡 步时， 先使用自注意力模型 𝑦 0 为一个特殊符号 ． 为了提高训练效率， 这里的自注意力模型实际上是掩蔽自注意力， 即阻止每个位置看到它右边的词 ． 对已生成的前缀序列 𝒚 0∶(𝑡−1) 进行编码得到 𝑯 dec = [𝒉 dec 1 ,…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "loss",
           "teachingTab": "visual",
@@ -2560,13 +4804,92 @@ export const BOOK_CHAPTERS = [
           "理解 residual 是“保留原输入”，不是简单重复。",
           "注意 FFN 是逐 token 的非线性变换。"
         ],
-        "experimentPrompt": "对照 Model Flow，把 block 里每个子层的职责用一句话说出来。",
+        "experimentPrompt": "对照数据流图，把 block 里每个子层的职责用一句话说出来。",
         "takeaways": [],
         "callout": {
           "title": "阅读提示",
           "body": "把 block 看成三段式：先让 token 彼此交流，再把旧表示接回来，最后对每个 token 单独加工。这样 residual、LayerNorm 和 FFN 的分工会清楚很多。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "一个 Transformer block 为什么不只有 attention？",
+        "coreIdea": "真正的 block 至少还包含 residual、LayerNorm、FFN，这些都不是装饰。",
+        "figureCaption": "一个 Transformer block 为什么不只有 attention：把 Attn / Res1 / LN1 / FFN / Res2 / LN2 看成一条连续数据流。",
+        "walkthrough": [
+          "把 Attn / Res1 / LN1 / FFN / Res2 / LN2 看成一条连续数据流。",
+          "理解 residual 是“保留原输入”，不是简单重复。",
+          "注意 FFN 是逐 token 的非线性变换。",
+          "一、Residual 在保什么"
+        ],
+        "vocabulary": [
+          {
+            "term": "残差连接",
+            "meaning": "保留原输入，使深层优化更稳定。"
+          },
+          {
+            "term": "层归一化",
+            "meaning": "把当前 token 的向量重新规范到稳定尺度。"
+          },
+          {
+            "term": "前馈网络",
+            "meaning": "对每个 token 做独立的非线性变换，增强表达能力。"
+          },
+          {
+            "term": "保留旧信息",
+            "meaning": "Residual 让 block 学的是增量，而不是完全重写输入。"
+          },
+          {
+            "term": "数值稳定",
+            "meaning": "LayerNorm 降低层间尺度漂移，让训练更平滑。"
+          },
+          {
+            "term": "表达增强",
+            "meaning": "FFN 把注意力得到的上下文进一步转成更有判别力的特征。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只要记住「一个 Transformer block 为什么不只有 attention」的定义就够了。",
+            "correction": "把 block 看成三段式：先让 token 彼此交流，再把旧表示接回来，最后对每个 token 单独加工。这样 residual、LayerNorm 和 FFN 的分工会清楚很多。"
+          }
+        ],
+        "diagram": {
+          "focus": "把 Attn / Res1 / LN1 / FFN / Res2 / LN2 看成一条连续数据流。",
+          "caption": "一个 Transformer block 为什么不只有 attention：把 Attn / Res1 / LN1 / FFN / Res2 / LN2 看成一条连续数据流。",
+          "sourcePages": [
+            394,
+            395
+          ]
+        },
+        "furtherInspection": [
+          "把 Attn / Res1 / LN1 / FFN / Res2 / LN2 看成一条连续数据流。",
+          "理解 residual 是“保留原输入”，不是简单重复。",
+          "注意 FFN 是逐 token 的非线性变换。",
+          "对照数据流图，把 block 里每个子层的职责用一句话说出来。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            394,
+            395
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Use the Add & Norm + FFN equations and the Transformer architecture figure.",
+          "excerpts": [
+            {
+              "page": 394,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 379 其中 𝒆 𝑥 𝑡 ∈ ℝ 𝐷 为词 𝑥 𝑡 的嵌入向量表示， 𝒑 𝑡 ∈ ℝ 𝐷 为位置 𝑡 的向量表示， 即位置编码 ． 𝒑 𝑡 可以作为可学习的参数， 也可以通过下面方式进行预定义： 𝒑 𝑡,2𝑖 = sin (𝑡/10000 2𝑖/𝐷 ), (15.…"
+            },
+            {
+              "page": 395,
+              "text": "15.7 总结和深入阅读 2021 年 5 月 18 日 380 a ) 掩蔽自注意力模块： 第 𝑡 步时， 先使用自注意力模型 𝑦 0 为一个特殊符号 ． 为了提高训练效率， 这里的自注意力模型实际上是掩蔽自注意力， 即阻止每个位置看到它右边的词 ． 对已生成的前缀序列 𝒚 0∶(𝑡−1) 进行编码得到 𝑯 dec = [𝒉 dec 1 ,…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "backward",
           "teachingTab": "why",
@@ -2653,6 +4976,79 @@ export const BOOK_CHAPTERS = [
         ],
         "callout": null,
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "FFN / residual / LayerNorm 为什么必须成组出现？",
+        "coreIdea": "这一页把 block 的后半段讲透：为什么 attention 之后还要接 residual、LayerNorm 和 FFN，而且往往要成对出现。",
+        "figureCaption": "FFN / residual / LayerNorm 为什么必须成组出现：顺着 block 后半段一口气读完，不要把 FFN 和残差拆开看。",
+        "walkthrough": [
+          "顺着 block 后半段一口气读完，不要把 FFN 和残差拆开看。",
+          "关注为什么归一化会在可学习变换之后重复出现。",
+          "把这页和前一页连起来，形成完整 block 视角。",
+          "一、为什么 attention 后还不够"
+        ],
+        "vocabulary": [
+          {
+            "term": "前馈网络",
+            "meaning": "对每个 token 单独做非线性变换，增强表示能力。"
+          },
+          {
+            "term": "block 节奏",
+            "meaning": "经典 Transformer block 的主要数据流顺序。"
+          },
+          {
+            "term": "第二次残差",
+            "meaning": "FFN 后再次通过残差和归一化稳住更新结果。"
+          },
+          {
+            "term": "后处理不是附属",
+            "meaning": "attention 之后的 FFN、residual、LayerNorm 决定 block 是否能继续堆深。"
+          },
+          {
+            "term": "稳定优先于花哨",
+            "meaning": "深层 Transformer 的可训练性，很大程度来自这些稳定结构。"
+          },
+          {
+            "term": "先保留再变换",
+            "meaning": "先通过残差保住旧表示，再对新表示做逐 token 变换。"
+          }
+        ],
+        "misconceptions": [
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "attention 不是 block 的全部，后半段决定表示能否稳定深化。"
+          }
+        ],
+        "diagram": {
+          "focus": "顺着 block 后半段一口气读完，不要把 FFN 和残差拆开看。",
+          "caption": "FFN / residual / LayerNorm 为什么必须成组出现：顺着 block 后半段一口气读完，不要把 FFN 和残差拆开看。",
+          "sourcePages": [
+            394
+          ]
+        },
+        "furtherInspection": [
+          "顺着 block 后半段一口气读完，不要把 FFN 和残差拆开看。",
+          "关注为什么归一化会在可学习变换之后重复出现。",
+          "把这页和前一页连起来，形成完整 block 视角。",
+          "试着不看术语，只按数据流顺序描述一次 block：输入怎么一步步变成新的 token 表示。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            394
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "The Transformer layer equations explicitly show the residual / norm / FFN stack.",
+          "excerpts": [
+            {
+              "page": 394,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 379 其中 𝒆 𝑥 𝑡 ∈ ℝ 𝐷 为词 𝑥 𝑡 的嵌入向量表示， 𝒑 𝑡 ∈ ℝ 𝐷 为位置 𝑡 的向量表示， 即位置编码 ． 𝒑 𝑡 可以作为可学习的参数， 也可以通过下面方式进行预定义： 𝒑 𝑡,2𝑖 = sin (𝑡/10000 2𝑖/𝐷 ), (15.…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "backward",
           "teachingTab": "math",
@@ -2685,7 +5081,7 @@ export const BOOK_CHAPTERS = [
         "principles": [],
         "observe": [
           "固定一个 query token，不要频繁切换。",
-          "反复利用 Focus Guide，让视线按 1-2-3 的顺序走。",
+          "反复利用阅读顺序提示，让视线按 1-2-3 的顺序走。",
           "如果觉得复杂，就只看当前阶段，不要一次看全部。"
         ],
         "experimentPrompt": "改一改自定义 token embedding，观察 attention 权重和输出向量会不会发生明显变化。",
@@ -2699,6 +5095,69 @@ export const BOOK_CHAPTERS = [
           "body": "固定一个 query token 后，按“矩阵行 -> context 向量 -> residual / norm -> FFN -> update”这个顺序读，不要来回跳。"
         },
         "kind": "",
+        "readingMode": "book-first",
+        "openingQuestion": "动手实验：盯住一个 token，完整走一遍 block？",
+        "coreIdea": "最后一页不再试图同时理解整个矩阵，而是围绕一个 token 完整走完一遍。",
+        "figureCaption": "动手实验：盯住一个 token，完整走一遍 block：固定一个 query token，不要频繁切换。",
+        "walkthrough": [
+          "固定一个 query token，不要频繁切换。",
+          "反复利用阅读顺序提示，让视线按 1-2-3 的顺序走。",
+          "如果觉得复杂，就只看当前阶段，不要一次看全部。"
+        ],
+        "vocabulary": [],
+        "misconceptions": [
+          {
+            "myth": "只要记住「动手实验：盯住一个 token，完整走一遍 block」的定义就够了。",
+            "correction": "固定一个 query token 后，按“矩阵行 -> context 向量 -> residual / norm -> FFN -> update”这个顺序读，不要来回跳。"
+          },
+          {
+            "myth": "只看最终结果，不需要对照图和公式。",
+            "correction": "先固定一个 query token，再谈整个注意力矩阵。"
+          }
+        ],
+        "diagram": {
+          "focus": "固定一个 query token，不要频繁切换。",
+          "caption": "动手实验：盯住一个 token，完整走一遍 block：固定一个 query token，不要频繁切换。",
+          "sourcePages": [
+            393,
+            394,
+            395
+          ]
+        },
+        "furtherInspection": [
+          "固定一个 query token，不要频繁切换。",
+          "反复利用阅读顺序提示，让视线按 1-2-3 的顺序走。",
+          "如果觉得复杂，就只看当前阶段，不要一次看全部。",
+          "改一改自定义 token embedding，观察 attention 权重和输出向量会不会发生明显变化。"
+        ],
+        "sourceNotes": {
+          "sourcePdf": "tmp/nndl-book.pdf",
+          "sourceTitle": "《神经网络与深度学习》",
+          "sourceFile": "content/source/nndl/transformer.md",
+          "pages": [
+            393,
+            394,
+            395
+          ],
+          "chapterPages": [],
+          "chapterPageList": "",
+          "rationale": "Keep the lab tied to the canonical block path: self-attention, position, masked attention, Add & Norm, and FFN.",
+          "excerpts": [
+            {
+              "page": 393,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 378 15.6.3 基于自注意力的序列到序列模型除长程依赖问题外， 基于循环神经网络的序列到序列模型的另一个缺点是无法并行计算 ． 为了提高并行计算效率以及捕捉长距离的依赖关系， 我们可以使用自注意力模型 （ Self-Attention Model ） 来建立一个全连接的网络结构 ． 自注意力模…"
+            },
+            {
+              "page": 394,
+              "text": "15.6 序列到序列模型 2021 年 5 月 18 日 379 其中 𝒆 𝑥 𝑡 ∈ ℝ 𝐷 为词 𝑥 𝑡 的嵌入向量表示， 𝒑 𝑡 ∈ ℝ 𝐷 为位置 𝑡 的向量表示， 即位置编码 ． 𝒑 𝑡 可以作为可学习的参数， 也可以通过下面方式进行预定义： 𝒑 𝑡,2𝑖 = sin (𝑡/10000 2𝑖/𝐷 ), (15.…"
+            },
+            {
+              "page": 395,
+              "text": "15.7 总结和深入阅读 2021 年 5 月 18 日 380 a ) 掩蔽自注意力模块： 第 𝑡 步时， 先使用自注意力模型 𝑦 0 为一个特殊符号 ． 为了提高训练效率， 这里的自注意力模型实际上是掩蔽自注意力， 即阻止每个位置看到它右边的词 ． 对已生成的前缀序列 𝒚 0∶(𝑡−1) 进行编码得到 𝑯 dec = [𝒉 dec 1 ,…"
+            }
+          ],
+          "sectionMappings": []
+        },
         "liveCellPreset": {
           "phase": "update",
           "teachingTab": "math",

@@ -70,6 +70,8 @@ export function convolveValid(image, kernel) {
   const output = [];
   let bestValue = -Infinity;
   let bestPatch = [];
+  let bestRow = 0;
+  let bestColumn = 0;
   for (let row = 0; row <= image.length - kernel.length; row += 1) {
     const nextRow = [];
     for (let column = 0; column <= image[0].length - kernel[0].length; column += 1) {
@@ -87,6 +89,8 @@ export function convolveValid(image, kernel) {
       if (sum > bestValue) {
         bestValue = sum;
         bestPatch = patch;
+        bestRow = row;
+        bestColumn = column;
       }
       nextRow.push(round(sum, 3));
     }
@@ -95,6 +99,8 @@ export function convolveValid(image, kernel) {
   return {
     map: output,
     bestPatch,
+    bestRow,
+    bestColumn,
   };
 }
 
