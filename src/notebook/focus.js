@@ -2,6 +2,10 @@ function getSpotlight(linkedSymbol, trace) {
   return linkedSymbol?.spotlight ?? trace?.spotlight ?? "prediction";
 }
 
+function getStageKey(snapshot, trace, linkedSymbol) {
+  return linkedSymbol?.stageKey ?? trace?.stageKey ?? snapshot?.visualGuide?.stageKey ?? null;
+}
+
 export function getStepBoundTrace(snapshot, fallbackIndex = 0) {
   const traces = snapshot?.calculationTrace ?? [];
   return traces.find((trace) => trace.status === "current") ?? traces[fallbackIndex] ?? traces[0] ?? null;
@@ -9,8 +13,68 @@ export function getStepBoundTrace(snapshot, fallbackIndex = 0) {
 
 export function describeVisualFocus({ snapshot, trace, linkedSymbol, language = "zh" }) {
   const spotlight = getSpotlight(linkedSymbol, trace);
+  const stageKey = getStageKey(snapshot, trace, linkedSymbol);
   const token = snapshot?.focusSample?.token;
   const guide = snapshot?.visualGuide ?? {};
+
+  if (snapshot?.chartType === "attention" && stageKey) {
+    const zhStage = {
+      "token-position": {
+        label: `Token + position${token ? `：${token}` : ""}`,
+        detail: "先看当前 token 的输入表示，确认内容向量和位置编码已经合成同一个起点。",
+      },
+      "qkv-head-scoring": {
+        label: `Q / K / V 与当前 query 行${token ? `：${token}` : ""}`,
+        detail: "固定当前 query token，先看它怎样投影成 Q / K / V，再比较两个 head 如何给这一行打分。",
+      },
+      "masked-attention-mix": {
+        label: "Mask、权重与注意力输出",
+        detail: "先盯住被遮掉的未来格子，再看合法位置的权重如何重新分配，最后确认 value 怎样被混合成输出向量。",
+      },
+      "residual-norm-1": {
+        label: "第一次残差与 LayerNorm",
+        detail: "把视线从权重表移到向量通路：先接回原输入，再看 LN1 怎样把第一轮写回重新拉稳。",
+      },
+      "ffn-residual-norm-2": {
+        label: "FFN、第二次残差与最终输出",
+        detail: "顺着 LN1 继续往右看 FFN、第二次残差和 LN2，确认 block 最终怎样改写当前 token 表示。",
+      },
+    };
+    const enStage = {
+      "token-position": {
+        label: `token + position${token ? `: ${token}` : ""}`,
+        detail: "Start with the token representation and verify that content and positional signal are already combined into one input state.",
+      },
+      "qkv-head-scoring": {
+        label: `Q / K / V and active query row${token ? `: ${token}` : ""}`,
+        detail: "Fix one query token, then inspect how it becomes Q / K / V and how both heads score that row.",
+      },
+      "masked-attention-mix": {
+        label: "mask, weights, and attention mix",
+        detail: "Look at the masked future cells first, then the legal weights, then the value mix that produces the attention output.",
+      },
+      "residual-norm-1": {
+        label: "first residual and LayerNorm",
+        detail: "Move from the weight table to the vector path: add the input back first, then inspect how LN1 stabilizes the first rewrite.",
+      },
+      "ffn-residual-norm-2": {
+        label: "FFN, second residual, and final output",
+        detail: "Continue rightward from LN1 through FFN, the second residual, and LN2 to see how the block rewrites the token state.",
+      },
+    };
+    const stageGuide = (language === "zh" ? zhStage : enStage)[stageKey];
+    if (stageGuide) {
+      return {
+        spotlight,
+        stageKey,
+        stageLabel: guide.stageLabel,
+        stageLabelZh: guide.stageLabelZh,
+        ...stageGuide,
+        targetIndex: guide.targetIndex,
+        queryIndex: guide.queryIndex,
+      };
+    }
+  }
 
   const zh = {
     cnn: {
@@ -138,6 +202,7 @@ export function describeVisualFocus({ snapshot, trace, linkedSymbol, language = 
   const chartGuide = guideMap[snapshot?.chartType] ?? {};
   return {
     spotlight,
+    stageKey,
     ...(chartGuide[spotlight] ?? {
       label: language === "zh" ? "当前高亮对象" : "Current visual focus",
       detail:

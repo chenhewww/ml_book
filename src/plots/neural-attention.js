@@ -24,11 +24,11 @@ function getAttentionRow(head, queryIndex, isUpdate) {
 
 function drawAttentionRow(
   svg,
-  { x, y, width, title, tokens, weights, mask, targetIndex, topIndex, round, panelColors = {}, showWeights = false }
+  { x, y, width, title, subtitle = "active query row", tokens, weights, mask, targetIndex, topIndex, round, panelColors = {}, showWeights = false }
 ) {
   drawPanel(svg, x, y, width, 82, {
     title,
-    subtitle: "active query row",
+    subtitle,
     ...panelColors,
   });
 
@@ -88,6 +88,153 @@ function drawAttentionRow(
   });
 }
 
+function getTransformerStageMeta({ stageKey, stageLabel, queryToken, spotlight, isUpdate }) {
+  const stageMap = {
+    "token-position": {
+      title: "1. Token + position",
+      subtitle: "build one token state before attention starts",
+      contextTitle: "2. Query row preview",
+      contextSubtitle: "the row is about to compare visible tokens",
+      ffnTitle: "3. Attention path ahead",
+      ffnSubtitle: "next comes masking, mixing, and stabilization",
+      outputTitle: "4. Block output later",
+      outputSubtitle: "residual + FFN will rewrite the token after attention",
+      queryCaption: "token + position vector",
+      attentionCaption: "project into heads",
+      contextCaption: "attention mix arrives here",
+      ffnCaption: "FFN has not acted yet",
+      outputCaption: "LN2 appears after the full block",
+      queryValueLabel: "x + pos",
+      contextValueLabel: "attn",
+      ffnValueLabel: "ffn",
+      outputValueLabel: "ln2",
+      emphasis: "start with the token representation, not the full matrix",
+    },
+    "qkv-head-scoring": {
+      title: "1. Q / K / V row",
+      subtitle: "project one token into the row that asks for context",
+      contextTitle: "2. Head scores",
+      contextSubtitle: "compare the active query with visible tokens in both heads",
+      ffnTitle: "3. Attention mix next",
+      ffnSubtitle: "the score row will become a weighted value mixture",
+      outputTitle: "4. Block output later",
+      outputSubtitle: "residual + FFN still come after the mix step",
+      queryCaption: "query token state",
+      attentionCaption: "active query row",
+      contextCaption: "mixed values appear next",
+      ffnCaption: "FFN is still downstream",
+      outputCaption: "final token state comes later",
+      queryValueLabel: "x + pos",
+      contextValueLabel: "attn",
+      ffnValueLabel: "ffn",
+      outputValueLabel: "ln2",
+      emphasis: "fix one query row and compare where each head points",
+    },
+    "masked-attention-mix": {
+      title: "1. Query row with mask",
+      subtitle: "future tokens are blocked before the weights mix values",
+      contextTitle: "2. Mask + attention mix",
+      contextSubtitle: "visible value vectors are mixed into one context state",
+      ffnTitle: "3. Residual path next",
+      ffnSubtitle: "the mixed context is about to be written back and normalized",
+      outputTitle: "4. Final block output later",
+      outputSubtitle: "FFN and LN2 still refine the token after this mix",
+      queryCaption: "query row after masking",
+      attentionCaption: "active query row",
+      contextCaption: "context after weighted value mix",
+      ffnCaption: "LN1 comes next",
+      outputCaption: "LN2 comes after FFN",
+      queryValueLabel: "x + pos",
+      contextValueLabel: "attn",
+      ffnValueLabel: "ffn",
+      outputValueLabel: "ln2",
+      emphasis: "watch masked cells disappear, then follow the surviving value mix",
+    },
+    "residual-norm-1": {
+      title: "1. Query row source",
+      subtitle: "the original token state is ready to be written back",
+      contextTitle: "2. Residual 1 + LN1",
+      contextSubtitle: "attention output rejoins the token, then LayerNorm stabilizes it",
+      ffnTitle: "3. FFN rewrite next",
+      ffnSubtitle: "the normalized vector now enters the feed-forward block",
+      outputTitle: "4. Final block output later",
+      outputSubtitle: "LN2 will finish the block after FFN",
+      queryCaption: "token state before write-back",
+      attentionCaption: "attention branch already computed",
+      contextCaption: "ln1",
+      ffnCaption: "FFN consumes LN1",
+      outputCaption: "LN2 still comes after FFN",
+      queryValueLabel: "x + pos",
+      contextValueLabel: "ln1",
+      ffnValueLabel: "ffn",
+      outputValueLabel: "ln2",
+      emphasis: "move from the weight row to the vector path: add back, then normalize",
+    },
+    "ffn-residual-norm-2": {
+      title: "1. Query row origin",
+      subtitle: "keep the original token in mind while the block finishes rewriting it",
+      contextTitle: "2. LN1 context",
+      contextSubtitle: "the normalized attention result is the input to the FFN rewrite",
+      ffnTitle: "3. FFN + residual 2",
+      ffnSubtitle: "a per-token non-linear rewrite is added back into the main path",
+      outputTitle: "4. Final block output",
+      outputSubtitle: "the second LayerNorm produces the token state that leaves the block",
+      queryCaption: "original token state",
+      attentionCaption: "attention row already consumed",
+      contextCaption: "ln1",
+      ffnCaption: "ffn",
+      outputCaption: "ln2",
+      queryValueLabel: "x + pos",
+      contextValueLabel: "ln1",
+      ffnValueLabel: "ffn",
+      outputValueLabel: "ln2",
+      emphasis: "stay on the vector path and watch the token leave the block with a new state",
+    },
+  };
+  return {
+    key: stageKey,
+    label: stageLabel,
+    ...(stageMap[stageKey] ?? {
+      title: "1. Query token",
+      subtitle:
+        spotlight === "parameters"
+          ? "token + position build the row that will ask for context"
+          : "track one token row through the whole block",
+      contextTitle: spotlight === "loss" ? "2. Attention output" : "2. Context + norm",
+      contextSubtitle:
+        spotlight === "loss"
+          ? "the row weights mix visible value vectors into one context"
+          : "mix visible values, then stabilize with LN",
+      ffnTitle: spotlight === "gradient" ? "3. FFN learning path" : "3. FFN correction",
+      ffnSubtitle:
+        spotlight === "gradient"
+          ? "the gradient passes through this non-linear rewrite step"
+          : "a per-token non-linear refinement step",
+      outputTitle: spotlight === "update" ? "4. Updated block output" : "4. Block output",
+      outputSubtitle:
+        spotlight === "update"
+          ? "compare how the final residual + norm rewrite the token state"
+          : "second residual + LN produce the final token state",
+      queryCaption: isUpdate ? "updated weights" : "future tokens masked",
+      attentionCaption: "active query row",
+      contextCaption: "ln1",
+      ffnCaption: "ffn",
+      outputCaption: "ln2",
+      queryValueLabel: `${formatTokenLabel(queryToken, 8)} + pos`,
+      contextValueLabel: "ln1",
+      ffnValueLabel: "ffn",
+      outputValueLabel: "ln2",
+      emphasis: null,
+    }),
+  };
+}
+
+function getStageContextValues(guide, stageKey) {
+  return stageKey === "residual-norm-1" || stageKey === "ffn-residual-norm-2"
+    ? guide.normalizedVector ?? guide.outputVector ?? []
+    : guide.outputVector ?? guide.normalizedVector ?? [];
+}
+
 function renderAttentionPlot({ svg, snapshot, getSelectedTrace, round }) {
   resetPlot(svg, 860, 520);
   const guide = snapshot.visualGuide;
@@ -95,16 +242,24 @@ function renderAttentionPlot({ svg, snapshot, getSelectedTrace, round }) {
   const queryToken = snapshot.focusSample.token;
   const spotlight = getSelectedTrace(snapshot)?.spotlight ?? "prediction";
   const isUpdate = spotlight === "update";
+  const stageMeta = getTransformerStageMeta({
+    stageKey: guide.stageKey,
+    stageLabel: guide.stageLabel,
+    queryToken,
+    spotlight,
+    isUpdate,
+  });
   const [headA, headB] = guide.heads ?? [];
   const rowA = headA ? getAttentionRow(headA, guide.queryIndex, isUpdate) : { row: [], mask: [] };
   const rowB = headB ? getAttentionRow(headB, guide.queryIndex, isUpdate) : { row: [], mask: [] };
   const queryPanel = getPanelColors({ active: matchesSpotlight(spotlight, "parameters"), accent: "#005f73" });
   const attentionPanel = getPanelColors({ active: matchesSpotlight(spotlight, ["prediction", "loss"]), accent: "#ee9b00" });
-  const contextPanel = getPanelColors({ active: matchesSpotlight(spotlight, "loss"), accent: "#2a9d8f" });
+  const contextPanel = getPanelColors({ active: matchesSpotlight(spotlight, ["loss", "gradient"]), accent: "#2a9d8f" });
   const ffnPanel = getPanelColors({ active: matchesSpotlight(spotlight, "gradient"), accent: "#bb3e03" });
   const outputPanel = getPanelColors({ active: matchesSpotlight(spotlight, "update"), accent: "#6a4c93" });
+  const stageContextValues = getStageContextValues(guide, guide.stageKey);
 
-  addText(svg, 44, 42, "Transformer block: one query row -> context mix -> block output");
+  addText(svg, 44, 42, `Transformer block · ${stageMeta.label ?? "current stage"}`);
   addText(
     svg,
     44,
@@ -112,20 +267,20 @@ function renderAttentionPlot({ svg, snapshot, getSelectedTrace, round }) {
     `query "${queryToken}" · target "${tokens[guide.targetIndex] ?? ""}" · loss ${snapshot.metrics.loss}`,
     "plot-token-label"
   );
+  if (stageMeta.emphasis) {
+    addText(svg, 44, 78, stageMeta.emphasis, "plot-token-label");
+  }
 
   drawPanel(svg, 24, 90, 184, 148, {
-    title: "1. Query token",
-    subtitle:
-      spotlight === "parameters"
-        ? "token + position build the row that will ask for context"
-        : "track one token row through the whole block",
+    title: stageMeta.title,
+    subtitle: stageMeta.subtitle,
     ...queryPanel,
   });
-  drawMiniBars(svg, guide.tokenPlusPosition ?? [], 54, 158, `${formatTokenLabel(queryToken, 8)} + pos`, "#005f73", {
+  drawMiniBars(svg, guide.tokenPlusPosition ?? [], 54, 158, stageMeta.queryValueLabel, "#005f73", {
     width: 118,
     height: 74,
   });
-  addText(svg, 54, 222, isUpdate ? "updated weights" : "future tokens masked", "plot-token-label");
+  addText(svg, 54, 222, stageMeta.queryCaption, "plot-token-label");
 
   if (headA) {
     drawAttentionRow(svg, {
@@ -133,6 +288,7 @@ function renderAttentionPlot({ svg, snapshot, getSelectedTrace, round }) {
       y: 90,
       width: 600,
       title: headA.name,
+      subtitle: stageMeta.attentionCaption,
       tokens,
       weights: rowA.row,
       mask: rowA.mask,
@@ -150,6 +306,7 @@ function renderAttentionPlot({ svg, snapshot, getSelectedTrace, round }) {
       y: 184,
       width: 600,
       title: headB.name,
+      subtitle: stageMeta.attentionCaption,
       tokens,
       weights: rowB.row,
       mask: rowB.mask,
@@ -166,43 +323,37 @@ function renderAttentionPlot({ svg, snapshot, getSelectedTrace, round }) {
   });
 
   drawPanel(svg, 236, 300, 180, 180, {
-    title: spotlight === "loss" ? "2. Attention output" : "2. Context + norm",
-    subtitle:
-      spotlight === "loss"
-        ? "the row weights mix visible value vectors into one context"
-        : "mix visible values, then stabilize with LN",
+    title: stageMeta.contextTitle,
+    subtitle: stageMeta.contextSubtitle,
     ...contextPanel,
   });
-  drawMiniBars(svg, guide.normalizedVector ?? guide.outputVector ?? [], 266, 372, "ln1", "#2a9d8f", {
+  drawMiniBars(svg, stageContextValues, 266, 372, stageMeta.contextValueLabel, "#2a9d8f", {
     width: 120,
     height: 78,
   });
+  addText(svg, 266, 456, stageMeta.contextCaption, "plot-token-label");
 
   drawPanel(svg, 448, 300, 180, 180, {
-    title: spotlight === "gradient" ? "3. FFN learning path" : "3. FFN correction",
-    subtitle:
-      spotlight === "gradient"
-        ? "the gradient passes through this non-linear rewrite step"
-        : "a per-token non-linear refinement step",
+    title: stageMeta.ffnTitle,
+    subtitle: stageMeta.ffnSubtitle,
     ...ffnPanel,
   });
-  drawMiniBars(svg, guide.ffnOutput ?? [], 478, 372, "ffn", "#bb3e03", {
+  drawMiniBars(svg, guide.ffnOutput ?? [], 478, 372, stageMeta.ffnValueLabel, "#bb3e03", {
     width: 120,
     height: 78,
   });
+  addText(svg, 478, 456, stageMeta.ffnCaption, "plot-token-label");
 
   drawPanel(svg, 660, 300, 180, 180, {
-    title: spotlight === "update" ? "4. Updated block output" : "4. Block output",
-    subtitle:
-      spotlight === "update"
-        ? "compare how the final residual + norm rewrite the token state"
-        : "second residual + LN produce the final token state",
+    title: stageMeta.outputTitle,
+    subtitle: stageMeta.outputSubtitle,
     ...outputPanel,
   });
-  drawMiniBars(svg, guide.normalized2Vector ?? [], 690, 372, "ln2", "#6a4c93", {
+  drawMiniBars(svg, guide.normalized2Vector ?? [], 690, 372, stageMeta.outputValueLabel, "#6a4c93", {
     width: 120,
     height: 78,
   });
+  addText(svg, 690, 438, stageMeta.outputCaption, "plot-token-label");
   addText(
     svg,
     690,

@@ -296,8 +296,9 @@ test("transformer qkv page survives long attention formulas without overflow", a
   await withBookPage(t, async (page) => {
     await openReaderPage(page, "第 5 章 Transformer", "2. query / key / value 是怎么配合的");
     await openCorePanels(page);
-    await clickSymbolChip(page, "q_i / k_j / v_j");
-    await assertFocusGuideContains(page, "当前 query 行");
+    await clickSymbolChip(page, "q_i");
+    await assertFocusGuideContains(page, "Q / K / V 与当前 query 行");
+    await assertFocusGuideContains(page, "q_i");
     await assertNoDocumentOverflow(page);
   });
 });
@@ -308,9 +309,25 @@ test("transformer block page keeps block focus and layout stable", async (t) => 
     await openCorePanels(page);
     await setTraceFilter(page, "all");
     await clickFlowNode(page, 4);
-    await clickSymbolChip(page, "LN / FFN");
-    await assertFocusGuideContains(page, "block 更新后表示");
-    await assertFocusGuideContains(page, "LN / FFN");
+    await clickSymbolChip(page, "LN");
+    await assertFocusGuideContains(page, "第一次残差与 LayerNorm");
+    await assertFocusGuideContains(page, "LN");
     await assertNoDocumentOverflow(page);
+  });
+});
+
+test("transformer lab page keeps stage-linked flow, focus, and formula aligned", async (t) => {
+  await withBookPage(t, async (page) => {
+    await openReaderPage(page, "第 5 章 Transformer", "8. 动手实验：盯住一个 token，完整走一遍 block");
+    await openCorePanels(page);
+    await setTraceFilter(page, "all");
+    await clickFlowNode(page, 2);
+    await assertFocusGuideContains(page, "Mask、权重与注意力输出");
+    await page.waitForFunction(
+      () => (document.querySelector("#liveFormulaBoard")?.textContent ?? "").includes("注意力混合与第一次残差")
+        && (document.querySelector("#liveFormulaBoard")?.textContent ?? "").includes("attn")
+    );
+    await assertNoDocumentOverflow(page);
+    await assertNoKeyOverlap(page, ["#focusGuide", "#plot", "#liveFormulaBoard", "#flowPanel", "#tracePanel", "#statsPanel"]);
   });
 });

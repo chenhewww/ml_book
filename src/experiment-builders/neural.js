@@ -584,6 +584,43 @@ function computeAttentionStateAdvanced(dataset, queryWeights, keyWeights, valueW
   return { embeddings, keys, values, scale, rows };
 }
 
+const TRANSFORMER_STAGE_SEQUENCE = [
+  {
+    key: "token-position",
+    title: "Token + Position",
+    titleZh: "词向量与位置编码",
+    spotlight: "parameters",
+  },
+  {
+    key: "qkv-head-scoring",
+    title: "Q / K / V + Head Scores",
+    titleZh: "Q / K / V 与多头打分",
+    spotlight: "prediction",
+  },
+  {
+    key: "masked-attention-mix",
+    title: "Mask + Attention Mix",
+    titleZh: "Mask、权重与注意力混合",
+    spotlight: "loss",
+  },
+  {
+    key: "residual-norm-1",
+    title: "Residual 1 + LayerNorm 1",
+    titleZh: "第一次残差与层归一化",
+    spotlight: "gradient",
+  },
+  {
+    key: "ffn-residual-norm-2",
+    title: "FFN + Residual 2 + LayerNorm 2",
+    titleZh: "FFN、第二次残差与层归一化",
+    spotlight: "update",
+  },
+];
+
+function getTransformerStage(index) {
+  return TRANSFORMER_STAGE_SEQUENCE[index] ?? TRANSFORMER_STAGE_SEQUENCE[0];
+}
+
 function buildTransformerTraceV3(
   sample,
   phase,
@@ -619,6 +656,9 @@ function buildTransformerTraceV3(
       formulaZh: `词向量与位置编码相加后 = [${sample.embedding.map((value, index) => round(value + positionalEncoding[index])).join(", ")}]`,
       status: getTraceStatus(0, currentIndex),
       spotlight: "parameters",
+      stageKey: "token-position",
+      stageLabel: "Token + position",
+      stageLabelZh: "词向量与位置编码",
     },
     {
       title: "Masked Head Scores",
@@ -627,30 +667,42 @@ function buildTransformerTraceV3(
       formulaZh: `HeadA = [${headA.baseScores.map((value, index) => headA.mask[index] ? "mask" : round(value)).join(", ")}]；HeadB = [${headB.baseScores.map((value, index) => headB.mask[index] ? "mask" : round(value)).join(", ")}]`,
       status: getTraceStatus(1, currentIndex),
       spotlight: "prediction",
+      stageKey: "qkv-head-scoring",
+      stageLabel: "Q / K / V + head scoring",
+      stageLabelZh: "Q / K / V 与多头打分",
     },
     {
       title: "Attention + Residual 1",
-      titleZh: "注意力与第一次残差",
-      formula: `attn_out = [${mergedOutput.map((value) => round(value)).join(", ")}]; res1 = [${residualOutput.map((value) => round(value)).join(", ")}]; ln1 = [${normalizedOutput.map((value) => round(value)).join(", ")}]`,
-      formulaZh: `attn_out = [${mergedOutput.map((value) => round(value)).join(", ")}]；res1 = [${residualOutput.map((value) => round(value)).join(", ")}]；ln1 = [${normalizedOutput.map((value) => round(value)).join(", ")}]`,
+      titleZh: "注意力混合与第一次残差",
+      formula: `attn_out = [${mergedOutput.map((value) => round(value)).join(", ")}]; res1 = [${residualOutput.map((value) => round(value)).join(", ")}]`,
+      formulaZh: `attn\_out = [${mergedOutput.map((value) => round(value)).join(", ")}]；res1 = [${residualOutput.map((value) => round(value)).join(", ")}]`,
       status: getTraceStatus(2, currentIndex),
       spotlight: "loss",
+      stageKey: "masked-attention-mix",
+      stageLabel: "Mask + attention mix",
+      stageLabelZh: "Mask、权重与注意力混合",
     },
     {
-      title: "FFN + GELU",
-      titleZh: "前馈网络与 GELU",
-      formula: `ffn_pre = [${ffnPreActivation.map((value) => round(value)).join(", ")}]; gelu = [${ffnGelu.map((value) => round(value)).join(", ")}]; ffn_out = [${ffnOutput.map((value) => round(value)).join(", ")}]`,
-      formulaZh: `ffn_pre = [${ffnPreActivation.map((value) => round(value)).join(", ")}]；gelu = [${ffnGelu.map((value) => round(value)).join(", ")}]；ffn_out = [${ffnOutput.map((value) => round(value)).join(", ")}]`,
+      title: "Residual 1 + LayerNorm 1",
+      titleZh: "第一次残差与层归一化",
+      formula: `ln1 = [${normalizedOutput.map((value) => round(value)).join(", ")}], mean=${round(normStats.mean)}, std=${round(normStats.std)}`,
+      formulaZh: `ln1 = [${normalizedOutput.map((value) => round(value)).join(", ")}]，均值=${round(normStats.mean)}，标准差=${round(normStats.std)}`,
       status: getTraceStatus(3, currentIndex),
       spotlight: "gradient",
+      stageKey: "residual-norm-1",
+      stageLabel: "Residual 1 + LayerNorm 1",
+      stageLabelZh: "第一次残差与层归一化",
     },
     {
-      title: "Residual 2 + LayerNorm 2",
-      titleZh: "第二次残差与层归一化",
-      formula: `res2 = [${residual2Output.map((value) => round(value)).join(", ")}]; ln2 = [${normalized2Output.map((value) => round(value)).join(", ")}], mean=${round(norm2Stats.mean)}, std=${round(norm2Stats.std)}`,
-      formulaZh: `res2 = [${residual2Output.map((value) => round(value)).join(", ")}]；ln2 = [${normalized2Output.map((value) => round(value)).join(", ")}], mean=${round(norm2Stats.mean)}, std=${round(norm2Stats.std)}`,
+      title: "FFN + Residual 2 + LayerNorm 2",
+      titleZh: "FFN、第二次残差与层归一化",
+      formula: `ffn = [${ffnOutput.map((value) => round(value)).join(", ")}]; res2 = [${residual2Output.map((value) => round(value)).join(", ")}]; ln2 = [${normalized2Output.map((value) => round(value)).join(", ")}]`,
+      formulaZh: `ffn = [${ffnOutput.map((value) => round(value)).join(", ")}]；res2 = [${residual2Output.map((value) => round(value)).join(", ")}]；ln2 = [${normalized2Output.map((value) => round(value)).join(", ")}]`,
       status: getTraceStatus(4, currentIndex),
       spotlight: "update",
+      stageKey: "ffn-residual-norm-2",
+      stageLabel: "FFN + residual 2 + LayerNorm 2",
+      stageLabelZh: "FFN、第二次残差与层归一化",
     },
   ];
 }
@@ -794,6 +846,9 @@ function buildTransformerSnapshotsV3(dataset, learningRate) {
           ),
         },
         visualGuide: {
+          stageKey: getTransformerStage(getCurrentTraceIndex(phase)).key,
+          stageLabel: getTransformerStage(getCurrentTraceIndex(phase)).title,
+          stageLabelZh: getTransformerStage(getCurrentTraceIndex(phase)).titleZh,
           tokens: dataset.map((token) => token.token),
           positionalEncodings: positionalEncodings.map((encoding) => encoding.map((value) => round(value))),
           tokenPlusPosition: tokenPlusPosition.map((value) => round(value)),
@@ -836,13 +891,25 @@ function buildTransformerSnapshotsV3(dataset, learningRate) {
             std: round(visibleNorm2.std),
           },
         },
-        modelFlow: [
-          { title: "Token + position", detail: `x + p for "${sample.token}" = [${addVectors(sample.embedding, positionalEncodings[sampleIndex]).map((value) => round(value)).join(", ")}]`, active: phase === "forward", traceIndex: 0 },
-          { title: "Two masked heads", detail: `HeadA and HeadB compute causal scores for "${sample.token}"`, active: phase === "forward", traceIndex: 1 },
-          { title: "Attention + residual 1", detail: `res1=[${visibleResidual.map((value) => round(value)).join(", ")}], ln1=[${visibleNorm.normalized.map((value) => round(value)).join(", ")}]`, active: phase === "loss", traceIndex: 2 },
-          { title: "FFN + GELU", detail: `ffn=[${visibleFfnOutput.map((value) => round(value)).join(", ")}]`, active: phase === "backward", traceIndex: 3 },
-          { title: "Residual + LayerNorm 2", detail: `res2=[${visibleResidual2.map((value) => round(value)).join(", ")}], ln2=[${visibleNorm2.normalized.map((value) => round(value)).join(", ")}]`, active: phase === "update", traceIndex: 4 },
-        ],
+        modelFlow: TRANSFORMER_STAGE_SEQUENCE.map((stage, index) => {
+          const details = [
+            `x+p=[${tokenPlusPosition.map((value) => round(value)).join(", ")}]`,
+            `query row ${sampleIndex + 1} · heads compare visible tokens`,
+            `attn=[${visibleMergedOutput.map((value) => round(value)).join(", ")}] · res1=[${visibleResidual.map((value) => round(value)).join(", ")}]`,
+            `ln1=[${visibleNorm.normalized.map((value) => round(value)).join(", ")}] · std=${round(visibleNorm.std)}`,
+            `ffn=[${visibleFfnOutput.map((value) => round(value)).join(", ")}] · ln2=[${visibleNorm2.normalized.map((value) => round(value)).join(", ")}]`,
+          ];
+          return {
+            title: stage.title,
+            titleZh: stage.titleZh,
+            detail: details[index],
+            active: getCurrentTraceIndex(phase) === index,
+            traceIndex: index,
+            stageKey: stage.key,
+            stageLabel: stage.title,
+            stageLabelZh: stage.titleZh,
+          };
+        }),
         explanation: buildTransformerAdvancedExplanation(
           sample,
           phase,

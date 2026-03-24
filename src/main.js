@@ -4,27 +4,26 @@ import {
   renderTeachingPanel,
 } from "./teaching-panel.js";
 import { BOOK_CHAPTERS, getChapterById, getChapterIndex } from "./book-content.js";
+import {
+  applyPagePreset as applyExperimentPagePreset,
+  exportMermaid as exportExperimentMermaid,
+  fetchJson,
+  findStepIndexForPage,
+  rebuildExperiment as rebuildExperimentState,
+  setStep as setExperimentStep,
+  toggleAutoplay as toggleExperimentAutoplay,
+} from "./main-experiment.js";
+import {
+  getAdjacentReaderPage,
+  getRenderablePages as getReaderRenderablePages,
+  renderChapterNavigation as renderReaderNavigation,
+  renderReader as renderReaderPage,
+} from "./main-reader.js";
 import { getFormulaSymbol, getFormulaSymbolsForPage } from "./formula-symbols.js";
 import { renderPlot } from "./plots/index.js";
 import { renderFlow, renderFocusGuide, renderStats, renderTrace } from "./ui/debug-panels.js";
 import {
-  buildChapterSummaryPage as buildSummaryPage,
-  renderAppendix as renderReaderAppendix,
-  renderBookSections as renderReaderSections,
-  renderCallout as renderReaderCallout,
-  renderChapterSummaryDetail as renderReaderChapterSummaryDetail,
-  renderCoreContent as renderReaderCoreContent,
-  renderDiagramNotes as renderReaderDiagramNotes,
-  renderMiniQuiz as renderReaderMiniQuiz,
-  renderObservationSection as renderReaderObservationSection,
-  renderOpeningQuestion as renderReaderOpeningQuestion,
-  renderTakeaways as renderReaderTakeaways,
-  renderWalkthrough as renderReaderWalkthrough,
-} from "./reader/renderers.js";
-import {
-  renderFormulaCards as renderNotebookFormulaCards,
   renderLiveFormulaBoard as renderNotebookFormulaBoard,
-  renderNotebookBridge,
   renderNotebookContext as renderNotebookContextPanel,
 } from "./notebook/renderers.js";
 import { describeVisualFocus, getStepBoundTrace } from "./notebook/focus.js";
@@ -33,6 +32,8 @@ import {
   populateCustomDatasetGuide as populateCustomDatasetEditorGuide,
   syncCustomDatasetEditor as syncCustomDatasetTextarea,
 } from "./main-dataset.js";
+
+const NO_SYMBOL_SELECTION = "__none__";
 
 const state = {
   metadata: null,
@@ -149,7 +150,7 @@ function getCurrentChapter() {
 }
 
 function getRenderablePages(chapter = getCurrentChapter()) {
-  return [...chapter.pages, buildSummaryPage(chapter, getChapterIndex(chapter.id))];
+  return getReaderRenderablePages(chapter);
 }
 
 function getCurrentRenderablePages() {
@@ -174,10 +175,25 @@ function getSelectedFormulaSymbol() {
   return getFormulaSymbol(getCurrentPage(), state.algorithmId, state.selectedFormulaSymbol);
 }
 
+function isTransformerStageSymbolPage(page) {
+  return state.algorithmId === "transformer_attention" && ["block", "ffn-stack", "lab"].includes(page?.id);
+}
+
 function ensureSelectedFormulaSymbol() {
+  const page = getCurrentPage();
   const symbols = getCurrentPageSymbols();
   if (!symbols.length) {
     state.selectedFormulaSymbol = null;
+    return null;
+  }
+  if (state.selectedFormulaSymbol === NO_SYMBOL_SELECTION) {
+    return null;
+  }
+  if (isTransformerStageSymbolPage(page)) {
+    if (state.selectedFormulaSymbol !== null && symbols.some((symbol) => symbol.key === state.selectedFormulaSymbol)) {
+      return getSelectedFormulaSymbol();
+    }
+    state.selectedFormulaSymbol = NO_SYMBOL_SELECTION;
     return null;
   }
   if (!symbols.some((symbol) => symbol.key === state.selectedFormulaSymbol)) {
@@ -198,6 +214,16 @@ function getSelectedTrace(snapshot) {
   return getTeachingSelectedTrace(snapshot, state.selectedTraceIndex);
 }
 
+function getTraceStageKey(trace) {
+  return trace?.stageKey ?? null;
+}
+
+function findTraceIndexByStageKey(snapshot, stageKey) {
+  const traces = snapshot?.calculationTrace ?? [];
+  const matchIndex = traces.findIndex((trace) => getTraceStageKey(trace) === stageKey);
+  return matchIndex === -1 ? getDefaultTraceIndex(snapshot) : matchIndex;
+}
+
 function getActiveFlowIndex(snapshot) {
   const nodes = snapshot?.modelFlow ?? [];
   const currentTraceIndex = getDefaultTraceIndex(snapshot);
@@ -216,6 +242,15 @@ function findTraceIndexBySpotlight(snapshot, spotlight) {
   const traces = snapshot?.calculationTrace ?? [];
   const matchIndex = traces.findIndex((trace) => trace.spotlight === spotlight);
   return matchIndex === -1 ? getDefaultTraceIndex(snapshot) : matchIndex;
+}
+
+function getLinkedTraceIndex(snapshot, selectedTrace, linkedSymbol) {
+  const stageKey = linkedSymbol?.stageKey ?? selectedTrace?.stageKey ?? null;
+  if (stageKey) {
+    return findTraceIndexByStageKey(snapshot, stageKey);
+  }
+  const spotlight = linkedSymbol?.spotlight ?? selectedTrace?.spotlight ?? null;
+  return findTraceIndexBySpotlight(snapshot, spotlight);
 }
 
 function setSelectedTraceIndex(index, snapshot = state.snapshots[getSafeCurrentStep()] ?? null) {
@@ -296,62 +331,6 @@ function populateSampleOptions() {
   }
 }
 
-async function fetchJson(url, options = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    const payload = await response.json().catch(() => ({ error: "请求失败。" }));
-    throw new Error(payload.error || `请求失败：${response.status}`);
-  }
-  return response.json();
-}
-
-async function fetchText(url, options = {}) {
-  const response = await fetch(url, options);
-  if (!response.ok) {
-    const payload = await response.json().catch(() => ({ error: "请求失败。" }));
-    throw new Error(payload.error || `请求失败：${response.status}`);
-  }
-  return response.text();
-}
-
-function downloadTextFile(filename, contents, mimeType) {
-  const blob = new Blob([contents], { type: mimeType });
-  const objectUrl = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = objectUrl;
-  link.download = filename;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(objectUrl);
-}
-
-function setControlsDisabled(disabled) {
-  [
-    dom.languageSelect,
-    dom.datasetSelect,
-    dom.learningRateInput,
-    dom.sampleSelect,
-    dom.downloadMermaidButton,
-    dom.customDatasetInput,
-    dom.importDatasetButton,
-    dom.resetDatasetButton,
-    dom.prevButton,
-    dom.nextButton,
-    dom.playPauseButton,
-    dom.resetButton,
-    dom.timelineRange,
-    dom.pagePrevButton,
-    dom.pageNextButton,
-  ].forEach((element) => {
-    element.disabled = disabled;
-  });
-
-  dom.presetButtons.querySelectorAll("button").forEach((button) => {
-    button.disabled = disabled;
-  });
-}
-
 function parseCustomDataset() {
   return parseCustomDatasetInput({
     algorithmId: state.algorithmId,
@@ -368,294 +347,75 @@ function syncCustomDatasetEditor({ force = false } = {}) {
   });
 }
 
-function getInterestingDefaultSampleId(snapshots) {
-  if (!snapshots.length) {
-    return null;
-  }
-  const page = getCurrentPage();
-  const targetPhase = page.phase ?? "forward";
-  const candidates = snapshots.filter((snapshot) => snapshot.phase === targetPhase);
-  const ranked = [...candidates].sort((left, right) => right.metrics.loss - left.metrics.loss);
-  return ranked[0]?.focusSample?.id ?? candidates[0]?.focusSample?.id ?? snapshots[0].focusSample.id;
-}
-
-function findStepIndexForPage(sampleId = null) {
-  const page = getCurrentPage();
-  const preset = page.liveCellPreset ?? {};
-  const targetPhase = preset.phase ?? page.phase ?? "forward";
-  const preferredSampleId = sampleId ?? (preset.sampleStrategy === "interesting-default" ? getInterestingDefaultSampleId(state.snapshots) : null);
-  const match = state.snapshots.findIndex((snapshot) => {
-    if (snapshot.phase !== targetPhase) {
-      return false;
-    }
-    return preferredSampleId ? snapshot.focusSample.id === preferredSampleId : true;
-  });
-  return match === -1 ? 0 : match;
-}
-
 function applyPagePreset() {
-  if (!state.snapshots.length) {
-    return;
-  }
-
-  const page = getCurrentPage();
-  const preset = page.liveCellPreset ?? {};
-  state.teachingTab = preset.teachingTab ?? page.teachingTab ?? "intuition";
-  state.traceFilter = preset.traceFilter ?? (page.phase === "update" ? "all" : "current");
-
-  if (!state.trackedSampleId || !state.dataset.some((sample) => sample.id === state.trackedSampleId)) {
-    state.trackedSampleId = preset.sampleStrategy === "interesting-default"
-      ? getInterestingDefaultSampleId(state.snapshots)
-      : state.dataset[0]?.id ?? null;
-  }
-
-  state.currentStep = findStepIndexForPage(state.trackedSampleId);
-  const snapshot = state.snapshots[getSafeCurrentStep()];
-  state.selectedTraceIndex = getDefaultTraceIndex(snapshot);
-  dom.timelineRange.value = String(state.currentStep);
+  applyExperimentPagePreset({
+    state,
+    dom,
+    page: getCurrentPage(),
+    getSafeCurrentStep,
+    getDefaultTraceIndex,
+  });
 }
 
 async function rebuildExperiment() {
-  state.loading = true;
-  setControlsDisabled(true);
-  setBackendStatus("后端正在生成本章的实验快照...");
-
-  try {
-    const experiment = state.customDatasetActive
-      ? await fetchJson("/api/experiment/custom", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            algorithmId: state.algorithmId,
-            learningRate: state.learningRate,
-            dataset: state.customDataset,
-          }),
-        })
-      : await fetchJson(
-          `/api/experiment?${new URLSearchParams({
-            algorithmId: state.algorithmId,
-            datasetId: state.datasetId,
-            learningRate: String(state.learningRate),
-          }).toString()}`
-        );
-
-    state.dataset = experiment.dataset;
-    state.snapshots = experiment.snapshots;
-    if (!state.trackedSampleId || !state.dataset.some((sample) => sample.id === state.trackedSampleId)) {
-      state.trackedSampleId = getInterestingDefaultSampleId(state.snapshots);
-    }
-
-    populateSampleOptions();
-    populatePresetButtons();
-    dom.timelineRange.max = String(Math.max(0, state.snapshots.length - 1));
-    dom.learningRateValue.textContent = String(round(state.learningRate, 2));
-    syncCustomDatasetEditor({ force: !state.customDatasetActive });
-    applyPagePreset();
-    render();
-
-    setBackendStatus(
-      state.customDatasetActive
-        ? "已切换到自定义数据，本章动画与推导已重新生成。"
-        : "本章已加载完成，可以按页阅读，也可以直接做实验。",
-      "ready"
-    );
-  } catch (error) {
-    state.dataset = [];
-    state.snapshots = [];
-    setBackendStatus(error.message, "error");
-    render();
-  } finally {
-    state.loading = false;
-    setControlsDisabled(false);
-  }
+  await rebuildExperimentState({
+    state,
+    dom,
+    round,
+    render,
+    setBackendStatus,
+    populateSampleOptions,
+    populatePresetButtons,
+    syncCustomDatasetEditor,
+    getCurrentPage,
+    getSafeCurrentStep,
+    getDefaultTraceIndex,
+  });
 }
 
 async function exportMermaid() {
-  try {
-    setBackendStatus("正在生成 Mermaid 导出...");
-    const body = state.customDatasetActive
-      ? await fetchText("/api/export/custom", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            kind: "mermaid",
-            algorithmId: state.algorithmId,
-            learningRate: state.learningRate,
-            dataset: state.customDataset,
-          }),
-        })
-      : await fetchText(
-          `/api/export/mermaid?${new URLSearchParams({
-            algorithmId: state.algorithmId,
-            datasetId: state.datasetId,
-            learningRate: String(state.learningRate),
-          }).toString()}`
-        );
-
-    downloadTextFile(`${state.algorithmId}-book-flow.mmd`, body, "text/plain;charset=utf-8");
-    setBackendStatus("Mermaid 导出完成。", "ready");
-  } catch (error) {
-    setBackendStatus(error.message, "error");
-  }
+  await exportExperimentMermaid({ state, setBackendStatus });
 }
 
 function setStep(nextStep) {
-  if (!state.snapshots.length) {
-    return;
-  }
-  state.currentStep = Math.min(Math.max(nextStep, 0), state.snapshots.length - 1);
-  const snapshot = state.snapshots[state.currentStep];
-  state.trackedSampleId = snapshot.focusSample.id;
-  state.selectedTraceIndex = getDefaultTraceIndex(snapshot);
-  dom.timelineRange.value = String(state.currentStep);
-  render();
+  setExperimentStep({
+    nextStep,
+    state,
+    dom,
+    render,
+    getDefaultTraceIndex,
+  });
 }
 
 function toggleAutoplay() {
-  if (state.autoplayHandle) {
-    clearInterval(state.autoplayHandle);
-    state.autoplayHandle = null;
-    dom.playPauseButton.textContent = "自动播放";
-    return;
-  }
-
-  state.autoplayHandle = window.setInterval(() => {
-    if (state.currentStep >= state.snapshots.length - 1) {
-      toggleAutoplay();
-      return;
-    }
-    setStep(state.currentStep + 1);
-  }, 1100);
-  dom.playPauseButton.textContent = "暂停";
+  toggleExperimentAutoplay({
+    state,
+    dom,
+    setStep: (nextStep) => setStep(nextStep),
+  });
 }
 
 function renderChapterNavigation() {
-  const pages = getCurrentRenderablePages();
-  dom.chapterList.innerHTML = BOOK_CHAPTERS
-    .map(
-      (chapter) => `
-        <button class="chapter-chip${chapter.id === state.chapterId ? " active" : ""}" data-chapter-id="${chapter.id}" type="button">
-          <strong>${chapter.title}</strong>
-          <small>${chapter.subtitle}</small>
-        </button>
-      `
-    )
-    .join("");
-
-  dom.pageList.innerHTML = pages
-    .map(
-      (page, index) => `
-        <button class="page-chip${index === state.pageIndex ? " active" : ""}" data-page-index="${index}" type="button">
-          <span>${index + 1}</span>
-          <strong>${page.title}</strong>
-        </button>
-      `
-    )
-    .join("");
+  renderReaderNavigation({
+    chapterId: state.chapterId,
+    pageIndex: state.pageIndex,
+    chapterListElement: dom.chapterList,
+    pageListElement: dom.pageList,
+  });
 }
 
-
-function getAdjacentReaderPage(chapterId, pageIndex, offset) {
-  const chapterList = BOOK_CHAPTERS;
-  let chapterIndex = getChapterIndex(chapterId);
-  let nextPageIndex = pageIndex + offset;
-
-  while (chapterIndex >= 0 && chapterIndex < chapterList.length) {
-    const chapter = chapterList[chapterIndex];
-    const pages = getRenderablePages(chapter);
-
-    if (nextPageIndex < 0) {
-      if (chapterIndex === 0) {
-        return { chapterId, pageIndex };
-      }
-      chapterIndex -= 1;
-      nextPageIndex = getRenderablePages(chapterList[chapterIndex]).length - 1;
-      continue;
-    }
-
-    if (nextPageIndex >= pages.length) {
-      if (chapterIndex === chapterList.length - 1) {
-        return { chapterId, pageIndex };
-      }
-      chapterIndex += 1;
-      nextPageIndex = 0;
-      continue;
-    }
-
-    return { chapterId: chapter.id, pageIndex: nextPageIndex };
-  }
-
-  return { chapterId, pageIndex };
-}
-
-function renderReader() {
-  const chapter = getCurrentChapter();
-  const pages = getRenderablePages(chapter);
-  const page = getCurrentPage();
-  const chapterIndex = getChapterIndex(chapter.id);
-  const symbols = getCurrentPageSymbols();
-  const selectedSymbol = ensureSelectedFormulaSymbol();
-
-  dom.chapterHero.innerHTML = `
-    <p class="chapter-kicker">第 ${chapterIndex + 1} 章</p>
-    <h2>${chapter.title}</h2>
-    <p class="chapter-subtitle">${chapter.subtitle}</p>
-    <p class="chapter-blurb">${chapter.blurb}</p>
-  `;
-
-  dom.readerProgress.innerHTML = `
-    <div class="reader-progress-copy">
-      <strong>当前页：${page.title}</strong>
-      <span>第 ${state.pageIndex + 1} / ${pages.length} 页</span>
-    </div>
-    <div class="reader-progress-bar">
-      <span style="width:${((state.pageIndex + 1) / pages.length) * 100}%"></span>
-    </div>
-  `;
-
-  dom.chapterBody.innerHTML = `
-    ${renderReaderOpeningQuestion(page)}
-    ${renderReaderCoreContent(page)}
-    ${renderReaderDiagramNotes(page)}
-    ${renderNotebookBridge(page)}
-    ${renderReaderWalkthrough(page)}
-    ${renderReaderSections(page)}
-    ${renderNotebookFormulaCards({ page, selectedSymbol, symbols })}
-    ${renderReaderTakeaways(page)}
-    ${renderReaderCallout(page)}
-    ${renderReaderMiniQuiz(page)}
-    ${renderReaderObservationSection(page)}
-    ${renderReaderAppendix(page)}
-    ${renderReaderChapterSummaryDetail(page)}
-  `;
-
-  const notebookMount = dom.chapterBody.querySelector("#notebookMount");
-  if (dom.storyGrid) {
-    dom.storyGrid.classList.remove("notebook-embedded");
-    dom.storyGrid.classList.add("story-grid-detached");
-  }
-  if (notebookMount && dom.storyGrid) {
-    dom.storyGrid.classList.add("notebook-embedded");
-    dom.storyGrid.classList.remove("story-grid-detached");
-    notebookMount.replaceChildren(dom.storyGrid);
-  } else if (!notebookMount && dom.storyGrid && dom.pageShell) {
-    dom.pageShell.appendChild(dom.storyGrid);
-  }
-
-  const previousLocation = getAdjacentReaderPage(state.chapterId, state.pageIndex, -1);
-  const nextLocation = getAdjacentReaderPage(state.chapterId, state.pageIndex, 1);
-  const isFirst = previousLocation.chapterId === state.chapterId && previousLocation.pageIndex === state.pageIndex;
-  const isLast = nextLocation.chapterId === state.chapterId && nextLocation.pageIndex === state.pageIndex;
-
-  dom.pagePrevButton.disabled = state.loading || isFirst;
-  dom.pageNextButton.disabled = state.loading || isLast;
-  dom.pageTurnerBar?.classList.toggle("is-disabled", state.loading || (isFirst && isLast));
-}
 
 function render() {
   renderSidebarState();
   renderChapterNavigation();
-  renderReader();
+  renderReaderPage({
+    dom,
+    state,
+    chapter: getCurrentChapter(),
+    page: getCurrentPage(),
+    symbols: getCurrentPageSymbols(),
+    selectedSymbol: ensureSelectedFormulaSymbol(),
+  });
 
   const snapshot = state.snapshots[getSafeCurrentStep()] ?? state.snapshots[0] ?? null;
   if (!snapshot) {
@@ -684,14 +444,15 @@ function render() {
 
   const currentPage = getCurrentPage();
   const symbols = getCurrentPageSymbols();
-  const selectedSymbol = getSelectedFormulaSymbol();
-  const stepBoundTrace = getStepBoundTrace(snapshot, state.selectedTraceIndex);
+  const selectedSymbol = ensureSelectedFormulaSymbol();
   const selectedTrace = getSelectedTrace(snapshot);
+  const stepBoundTrace = getStepBoundTrace(snapshot, state.selectedTraceIndex);
+  const baseTrace = selectedTrace ?? stepBoundTrace;
   const linkedSymbol = selectedSymbol;
-  const focusTrace = linkedSymbol?.spotlight
-    ? { ...(selectedTrace ?? stepBoundTrace ?? {}), spotlight: linkedSymbol.spotlight }
-    : selectedTrace;
-  const spotlight = linkedSymbol?.spotlight ?? selectedTrace?.spotlight ?? "parameters";
+  const linkedTraceIndex = getLinkedTraceIndex(snapshot, baseTrace, linkedSymbol);
+  const linkedTrace = snapshot.calculationTrace?.[linkedTraceIndex] ?? baseTrace;
+  const focusTrace = linkedTrace ?? selectedTrace;
+  const spotlight = linkedSymbol?.spotlight ?? focusTrace?.spotlight ?? "parameters";
   const visualFocus = describeVisualFocus({
     snapshot,
     trace: focusTrace ?? stepBoundTrace,
@@ -710,7 +471,8 @@ function render() {
 
   const getRenderTrace = (currentSnapshot) => {
     const trace = getSelectedTrace(currentSnapshot);
-    return linkedSymbol?.spotlight ? { ...trace, spotlight: linkedSymbol.spotlight } : trace;
+    const linkedIndex = getLinkedTraceIndex(currentSnapshot, trace, linkedSymbol);
+    return currentSnapshot.calculationTrace?.[linkedIndex] ?? trace;
   };
 
   renderNotebookContextPanel({
@@ -719,19 +481,19 @@ function render() {
     page: currentPage,
     currentStep: state.currentStep,
     totalSteps: state.snapshots.length,
-    selectedTrace: stepBoundTrace,
+    selectedTrace: linkedTrace ?? stepBoundTrace,
     linkedSymbol,
   });
   renderNotebookFormulaBoard({
     root: dom.liveFormulaBoard,
     page: currentPage,
-    selectedTrace: stepBoundTrace,
+    selectedTrace: linkedTrace ?? stepBoundTrace,
     linkedSymbol,
     selectedSymbol,
     symbols,
   });
   renderFocusGuide(dom.focusGuide, snapshot, focusTrace, state.language, linkedSymbol, visualFocus);
-  renderFlow(dom.flowDiagram, snapshot, focusTrace ? findTraceIndexBySpotlight(snapshot, focusTrace.spotlight) : state.selectedTraceIndex, state.language);
+  renderFlow(dom.flowDiagram, snapshot, linkedTraceIndex, state.language);
   renderStats(dom.statsGrid, snapshot, spotlight, state.language);
   renderTrace({
     traceList: dom.traceList,
@@ -743,7 +505,7 @@ function render() {
     selectedTraceIndex: state.selectedTraceIndex,
     snapshot,
   });
-  renderTeaching(snapshot, focusTrace ? findTraceIndexBySpotlight(snapshot, focusTrace.spotlight) : state.selectedTraceIndex);
+  renderTeaching(snapshot, linkedTraceIndex);
   renderPlot({ svg: dom.plot, snapshot, getSelectedTrace: getRenderTrace, round });
 }
 
@@ -837,8 +599,8 @@ function bindEvents() {
 
     if (button.dataset.guideRole === "visual") {
       const linkedSymbol = getSelectedFormulaSymbol();
-      const spotlight = linkedSymbol?.spotlight ?? getSelectedTrace(snapshot)?.spotlight ?? "prediction";
-      setSelectedTraceIndex(findTraceIndexBySpotlight(snapshot, spotlight), snapshot);
+      const selectedTrace = getSelectedTrace(snapshot);
+      setSelectedTraceIndex(getLinkedTraceIndex(snapshot, selectedTrace, linkedSymbol), snapshot);
       return;
     }
 
@@ -877,7 +639,12 @@ function bindEvents() {
       panel.open = true;
     }
     const scrollTarget = isDetailsPanel ? panel.querySelector("summary") ?? panel : panel;
-    scrollTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+    const pageTurnerHeight = dom.pageTurnerBar?.offsetHeight ?? 0;
+    const top = scrollTarget.getBoundingClientRect().top + window.scrollY - 16;
+    window.scrollTo({
+      top: Math.max(0, top - pageTurnerHeight),
+      behavior: "smooth",
+    });
   });
 
   dom.languageSelect.addEventListener("change", (event) => {
@@ -909,7 +676,13 @@ function bindEvents() {
 
   dom.sampleSelect.addEventListener("change", (event) => {
     state.trackedSampleId = event.target.value;
-    setStep(findStepIndexForPage(state.trackedSampleId));
+    setStep(
+      findStepIndexForPage({
+        sampleId: state.trackedSampleId,
+        page: getCurrentPage(),
+        snapshots: state.snapshots,
+      })
+    );
   });
 
   dom.traceList.addEventListener("click", (event) => {

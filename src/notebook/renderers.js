@@ -26,11 +26,54 @@ function isCompactNotebookFormula(expression = "") {
   return !noisyTokens.some((token) => expression.includes(token));
 }
 
+function isTransformerPage(page) {
+  return ["opening", "qkv", "positional-encoding", "causal-mask", "mask-and-heads", "block", "ffn-stack", "lab"].includes(page?.id)
+    || /Transformer/.test(page?.chapterTitle ?? "")
+    || /Transformer/.test(page?.title ?? "");
+}
+
+function getFormulaStageKeys(formula) {
+  const target = `${formula.label} ${formula.expression} ${formula.explanation}`;
+  const keys = [];
+  if (/z_i = x_i \+ p_i|p_i|PE\(/.test(target)) {
+    keys.push("token-position");
+  }
+  if (/q_i|k_i|k_j|v_i|v_j|W_Q|W_K|W_V|MultiHead|Concat|W_O/.test(target)) {
+    keys.push("qkv-head-scoring");
+  }
+  if (/o_i|alpha_\{i,j\}|\\alpha_\{i,j\}|softmax|m_\{i,j\}|\\tilde\{s\}_\{i,j\}|Attention\(Q,K,V\)|O =/.test(target)) {
+    keys.push("masked-attention-mix");
+  }
+  if (/r = x \+|LN\(x\)|LayerNorm|Add&Norm|Add\\&Norm/.test(target)) {
+    keys.push("residual-norm-1");
+  }
+  if (/FFN\(x\)|GELU|block 节奏|第二次残差|y = \\text\{LN\}\(r \+ \\text\{FFN\}\(r\)\)/.test(target)) {
+    keys.push("ffn-residual-norm-2");
+  }
+  return keys;
+}
+
+function formulaMatchesStage(formula, stageKey) {
+  return getFormulaStageKeys(formula).includes(stageKey);
+}
+
 function buildCurrentFormula(page, selectedTrace, linkedSymbol) {
   const pageFormulas = page.formulas ?? [];
   const matchedFormula = linkedSymbol
     ? pageFormulas.find((formula) => formulaMentionsSymbol(formula, linkedSymbol))
     : null;
+  const stageKey = linkedSymbol?.stageKey ?? selectedTrace?.stageKey ?? null;
+  const stageFormula = stageKey ? pageFormulas.find((formula) => formulaMatchesStage(formula, stageKey)) : null;
+
+  if (isTransformerPage(page) && (matchedFormula || stageFormula)) {
+    const formula = matchedFormula ?? stageFormula;
+    return {
+      title: selectedTrace?.stageLabelZh || selectedTrace?.titleZh || selectedTrace?.title || formula.label,
+      expression: formula.expression,
+      explanation: `${formula.explanation} 详细推导留在下面的逐步推导区。`,
+      detailInTrace: true,
+    };
+  }
 
   if (selectedTrace?.formula && isCompactNotebookFormula(selectedTrace.formula)) {
     return {
@@ -48,6 +91,15 @@ function buildCurrentFormula(page, selectedTrace, linkedSymbol) {
       title: selectedTrace?.titleZh || selectedTrace?.title || matchedFormula.label,
       expression: matchedFormula.expression,
       explanation: `${matchedFormula.explanation} 详细推导留在下面的逐步推导区。`,
+      detailInTrace: true,
+    };
+  }
+
+  if (stageFormula) {
+    return {
+      title: selectedTrace?.stageLabelZh || selectedTrace?.titleZh || selectedTrace?.title || stageFormula.label,
+      expression: stageFormula.expression,
+      explanation: `${stageFormula.explanation} 详细推导留在下面的逐步推导区。`,
       detailInTrace: true,
     };
   }
@@ -217,17 +269,18 @@ export function renderLiveFormulaBoard({ root, page, selectedTrace, linkedSymbol
   const formulas = page.formulas ?? [];
   const currentSpotlight = linkedSymbol?.spotlight ?? selectedTrace?.spotlight ?? "prediction";
   const currentFormula = buildCurrentFormula(page, selectedTrace, linkedSymbol);
+  const stageLabel = linkedSymbol?.stageLabelZh ?? selectedTrace?.stageLabelZh ?? linkedSymbol?.stageLabel ?? selectedTrace?.stageLabel ?? null;
   root.dataset.currentSpotlight = currentSpotlight;
   root.innerHTML = `
     <div class="live-formula-header">
       <div>
         <h3>这一刻最该看的公式</h3>
-        <small>先把当前变化说清楚，再决定要不要展开更长的推导。</small>
+        <small>${stageLabel ? `当前阶段：${stageLabel}。先把当前变化说清楚，再决定要不要展开更长的推导。` : "先把当前变化说清楚，再决定要不要展开更长的推导。"}</small>
       </div>
       <span class="pill accent live-formula-spotlight">${getSpotlightLabel(currentSpotlight)}</span>
     </div>
     <article class="live-formula-card current${currentFormula.detailInTrace ? " trace-backed" : ""}">
-      <div class="live-formula-label">当前运行公式</div>
+      <div class="live-formula-label">当前运行公式${stageLabel ? ` · ${stageLabel}` : ""}</div>
       <strong>${currentFormula.title}</strong>
       ${currentFormula.expression ? `<div class="live-formula-math">${renderMathExpression(currentFormula.expression, { displayMode: true })}</div>` : ""}
       <p>${currentFormula.explanation}</p>

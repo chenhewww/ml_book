@@ -63,42 +63,92 @@ const SYMBOL_GUIDES = {
     {
       key: "p_i",
       label: "p_i",
-      aliases: ["p_i", "PE(", "positional"],
+      aliases: ["p_i", "PE(", "positional", "z_i = x_i + p_i"],
       meaning: "位置编码，给 token 注入顺序坐标。",
-      visual: "先看 token 在序列中的位置，再看输入表示如何把内容和顺序叠加到一起。",
+      visual: "先看 token embedding，再看它怎样和位置编码相加成输入表示。",
       spotlight: "parameters",
+      stageKey: "token-position",
     },
     {
-      key: "q_i / k_j / v_j",
-      label: "q_i / k_j / v_j",
-      aliases: ["q_i", "k_j", "v_j", "W_Q", "W_K", "W_V", "Q", "K", "V"],
-      meaning: "query 负责发问，key 负责被匹配，value 负责提供真正被聚合的内容。",
-      visual: "先盯住一个 query token，再看它如何在 attention matrix 中对不同 key 分配权重，最后怎样加权 value。",
+      key: "q_i",
+      label: "q_i",
+      aliases: ["q_i", "W_Q", "Q"],
+      meaning: "query 是当前位置发出的提问，决定这一行要向哪些位置索取信息。",
+      visual: "先固定当前 query token，再看它怎样生成一整行注意力打分。",
       spotlight: "prediction",
+      stageKey: "qkv-head-scoring",
+    },
+    {
+      key: "k_j",
+      label: "k_j",
+      aliases: ["k_j", "k_i", "W_K", "K"],
+      meaning: "key 是每个位置暴露出来的可匹配索引，决定 query 会不会关注这里。",
+      visual: "把它理解成每个 token 举起的一张索引卡，query 会拿它来做匹配。",
+      spotlight: "prediction",
+      stageKey: "qkv-head-scoring",
+    },
+    {
+      key: "v_j",
+      label: "v_j",
+      aliases: ["v_j", "v_i", "W_V", "V"],
+      meaning: "value 是真正会被加权带回来的内容载体。",
+      visual: "先别把注意力停在分数表上，最后真正回到当前 token 的是 value 的加权和。",
+      spotlight: "loss",
+      stageKey: "masked-attention-mix",
+    },
+    {
+      key: "a_{i,j}",
+      label: "a_{i,j}",
+      aliases: ["a_{i,j}", "\\alpha_{i,j}", "alpha_{i,j}", "softmax"],
+      meaning: "当前位置 i 对位置 j 的注意力权重，是这一行在合法范围内重新分配后的结果。",
+      visual: "先盯住当前 query 行，再看哪些位置拿到了最大的权重。",
+      spotlight: "loss",
+      stageKey: "masked-attention-mix",
     },
     {
       key: "m_{i,j}",
       label: "m_{i,j}",
-      aliases: ["m_{i,j}", "mask"],
+      aliases: ["m_{i,j}", "mask", "\\tilde{s}_{i,j}"],
       meaning: "causal mask，对未来位置施加不可见约束。",
       visual: "优先看被遮掉的未来格子。它们不是弱相关，而是根本不允许被访问。",
       spotlight: "loss",
+      stageKey: "masked-attention-mix",
+    },
+    {
+      key: "o_i",
+      label: "o_i",
+      aliases: ["o_i", "attn_out", "Attention(Q,K,V)", "O ="],
+      meaning: "当前 token 的注意力输出，是所有 value 按权重混合后的上下文向量。",
+      visual: "从权重表移到右侧上下文向量，确认真正输出的是混合后的内容。",
+      spotlight: "loss",
+      stageKey: "masked-attention-mix",
     },
     {
       key: "head_r",
       label: "head_r",
-      aliases: ["head_r", "head_1", "head_2", "head"],
+      aliases: ["head_r", "head_1", "head_2", "head", "MultiHead"],
       meaning: "第 r 个注意力头，在自己的投影视角里提取一种关系模式。",
-      visual: "对比多个 Head 的关注差异，不要只盯单张矩阵。",
+      visual: "对比多个 head 的关注差异，不要只盯单张矩阵。",
       spotlight: "prediction",
+      stageKey: "qkv-head-scoring",
     },
     {
-      key: "LN / FFN",
-      label: "LN / FFN",
-      aliases: ["LN", "LayerNorm", "FFN", "Add&Norm", "Add\\&Norm"],
-      meaning: "LayerNorm 稳定数值尺度，FFN 负责逐 token 非线性变换。",
-      visual: "在 block 后半段依次看 residual、LayerNorm 和 FFN，它们共同把上下文转成新的 token 表示。",
+      key: "LN",
+      label: "LN",
+      aliases: ["LN", "LayerNorm", "Add&Norm", "Add\\&Norm"],
+      meaning: "LayerNorm 用来重新稳定向量尺度，让残差之后的表示更容易继续向后传。",
+      visual: "在注意力输出之后先看 residual，再看 LayerNorm 怎样把尺度重新拉稳。",
+      spotlight: "gradient",
+      stageKey: "residual-norm-1",
+    },
+    {
+      key: "FFN",
+      label: "FFN",
+      aliases: ["FFN", "GELU", "W_1", "W_2"],
+      meaning: "FFN 会对每个 token 单独做一次非线性改写，再把结果写回 block 输出。",
+      visual: "顺着 LN1 继续往右看 FFN、第二次残差和最终输出，不要把它看成独立外挂模块。",
       spotlight: "update",
+      stageKey: "ffn-residual-norm-2",
     },
   ],
 };
@@ -114,6 +164,10 @@ function collectSymbolsFromFormulas(page, symbolGuides) {
 }
 
 export function getFormulaSymbolsForPage(page, algorithmId) {
+  const formulas = page?.formulas ?? [];
+  if (!formulas.length) {
+    return [];
+  }
   const symbolGuides = SYMBOL_GUIDES[algorithmId] ?? [];
   const matched = collectSymbolsFromFormulas(page, symbolGuides);
   return matched.length ? matched : symbolGuides.slice(0, 3);

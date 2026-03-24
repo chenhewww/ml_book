@@ -61,6 +61,23 @@ function getFlowTraceIndex(node, index) {
   return Number.isInteger(node?.traceIndex) ? node.traceIndex : index;
 }
 
+function getTraceStageKey(trace) {
+  return trace?.stageKey ?? null;
+}
+
+function getFlowStageKey(node) {
+  return node?.stageKey ?? null;
+}
+
+function getTraceIndexByStageKey(snapshot, stageKey) {
+  if (!stageKey) {
+    return getCurrentTraceIndex(snapshot);
+  }
+  const traces = snapshot?.calculationTrace ?? [];
+  const matchIndex = traces.findIndex((trace) => getTraceStageKey(trace) === stageKey);
+  return matchIndex === -1 ? getCurrentTraceIndex(snapshot) : matchIndex;
+}
+
 function getTraceIndexBySpotlight(snapshot, spotlight) {
   if (!spotlight) {
     return getCurrentTraceIndex(snapshot);
@@ -72,8 +89,13 @@ function getTraceIndexBySpotlight(snapshot, spotlight) {
 
 export function renderFlow(container, snapshot, selectedTraceIndex = null, language = "zh") {
   const currentTraceIndex = getCurrentTraceIndex(snapshot);
-  const currentSpotlight = (snapshot?.calculationTrace ?? [])[currentTraceIndex]?.spotlight ?? null;
-  const linkedTraceIndex = Number.isInteger(selectedTraceIndex) ? selectedTraceIndex : getTraceIndexBySpotlight(snapshot, currentSpotlight);
+  const currentTrace = (snapshot?.calculationTrace ?? [])[currentTraceIndex] ?? null;
+  const currentStageKey = getTraceStageKey(currentTrace);
+  const linkedTraceIndex = Number.isInteger(selectedTraceIndex)
+    ? selectedTraceIndex
+    : currentStageKey
+      ? getTraceIndexByStageKey(snapshot, currentStageKey)
+      : getTraceIndexBySpotlight(snapshot, currentTrace?.spotlight ?? null);
   container.innerHTML = snapshot.modelFlow
     .map((node, index) => {
       const traceIndex = getFlowTraceIndex(node, index);
@@ -160,15 +182,21 @@ export function renderTrace({
 }
 
 export function renderFocusGuide(container, snapshot, selectedTrace, language, linkedSymbol = null, visualFocus = null) {
-  const traceIndex = getTraceIndexBySpotlight(snapshot, selectedTrace?.spotlight ?? null);
+  const traceIndex = visualFocus?.stageKey
+    ? getTraceIndexByStageKey(snapshot, visualFocus.stageKey)
+    : linkedSymbol?.stageKey
+      ? getTraceIndexByStageKey(snapshot, linkedSymbol.stageKey)
+      : selectedTrace?.stageKey
+        ? getTraceIndexByStageKey(snapshot, selectedTrace.stageKey)
+        : getTraceIndexBySpotlight(snapshot, selectedTrace?.spotlight ?? null);
   const activeFlow =
-    snapshot.modelFlow?.find((node, index) => getFlowTraceIndex(node, index) === traceIndex) ??
+    snapshot.modelFlow?.find((node, index) => getFlowTraceIndex(node, index) === traceIndex || getFlowStageKey(node) === visualFocus?.stageKey || getFlowStageKey(node) === linkedSymbol?.stageKey) ??
     snapshot.modelFlow?.find((node) => node.active) ??
     snapshot.modelFlow?.[0];
   const traceTitle =
     language === "zh"
-      ? selectedTrace?.titleZh || selectedTrace?.title || "当前公式"
-      : selectedTrace?.title || selectedTrace?.titleZh || "Current equation";
+      ? selectedTrace?.stageLabelZh || selectedTrace?.titleZh || selectedTrace?.title || "当前公式"
+      : selectedTrace?.stageLabel || selectedTrace?.title || selectedTrace?.titleZh || "Current equation";
   const traceFormula =
     language === "zh"
       ? selectedTrace?.formulaZh || selectedTrace?.formula || ""
