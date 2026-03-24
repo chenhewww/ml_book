@@ -878,7 +878,10 @@ h1 {
   pointer-events: none;
 }
 
-.page-turner-bar .page-turner-inner,
+.page-turner-bar .page-turner-inner {
+  pointer-events: none;
+}
+
 .page-turner-bar button {
   pointer-events: auto;
 }
@@ -1086,6 +1089,7 @@ h1 {
   grid-template-columns: minmax(0, 1fr);
   gap: 22px;
   align-items: start;
+  overflow-anchor: none;
 }
 
 .live-plot-column {
@@ -1262,6 +1266,8 @@ h1 {
 
 .story-controls-panel {
   margin-top: 2px;
+  margin-bottom: 110px;
+  scroll-margin-bottom: 110px;
   border-radius: 18px;
   border: 1px solid rgba(215, 200, 177, 0.55);
   background: rgba(255, 255, 255, 0.72);
@@ -1282,6 +1288,13 @@ h1 {
 
 .story-controls-panel[open] .story-controls-summary {
   border-bottom: 1px solid rgba(215, 200, 177, 0.55);
+}
+
+.story-controls-panel[open] {
+  position: sticky;
+  bottom: 108px;
+  z-index: 5;
+  box-shadow: 0 16px 32px rgba(54, 38, 10, 0.08);
 }
 
 .panel {

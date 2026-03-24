@@ -175,9 +175,16 @@ export function renderTrace({
     })
     .join("");
 
-  if (!traceCollapsed) {
+  if (!traceCollapsed && traceShell?.open) {
     const activeCard = traceList.querySelector(`[data-trace-index="${selectedTraceIndex}"]`);
-    activeCard?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    const traceBounds = traceList.getBoundingClientRect();
+    const cardBounds = activeCard?.getBoundingClientRect();
+    const isOutsideViewport = cardBounds
+      ? cardBounds.top < traceBounds.top || cardBounds.bottom > traceBounds.bottom
+      : false;
+    if (isOutsideViewport) {
+      activeCard?.scrollIntoView({ block: "nearest", inline: "nearest" });
+    }
   }
 }
 

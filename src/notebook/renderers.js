@@ -138,10 +138,9 @@ export function renderNotebookBridge(page) {
     <section class="book-section notebook-bridge">
       <div class="notebook-intro">
         <div class="notebook-kicker">正文里的交互图解</div>
-        <h3>先读懂这一页，再动这幅图</h3>
+        <h3>看这页对应的图和公式</h3>
         <p>
-          这一块不再是独立的调试台，而是正文中的交互图解。先理解这页在回答什么问题，
-          再拖动步骤，让图、公式和解释一起变化。
+          先看当前页最重要的对象，再按步骤观察主图、公式和数据流。
         </p>
       </div>
       <div class="notebook-rhythm">

@@ -331,3 +331,47 @@ test("transformer lab page keeps stage-linked flow, focus, and formula aligned",
     await assertNoKeyOverlap(page, ["#focusGuide", "#plot", "#liveFormulaBoard", "#flowPanel", "#tracePanel", "#statsPanel"]);
   });
 });
+
+test("transformer lab page keeps the next-step button stable while stepping", async (t) => {
+  await withBookPage(t, async (page) => {
+    await openReaderPage(page, "第 5 章 Transformer", "8. 动手实验：盯住一个 token，完整走一遍 block");
+    await page.locator(".story-controls-summary").click();
+    await page.waitForFunction(() => document.querySelector("#nextButton") !== null);
+    await page.evaluate(() => {
+      const button = document.querySelector("#nextButton");
+      const top = button.getBoundingClientRect().top + window.scrollY - window.innerHeight + 80;
+      window.scrollTo({ top: Math.max(0, top) });
+    });
+    await page.waitForTimeout(200);
+
+    const positions = [];
+    for (let index = 0; index < 4; index += 1) {
+      const position = await page.evaluate(() => {
+        const button = document.querySelector("#nextButton").getBoundingClientRect();
+        const bar = document.querySelector(".page-turner-bar")?.getBoundingClientRect() ?? null;
+        return {
+          top: button.top,
+          bottom: button.bottom,
+          left: button.left,
+          width: button.width,
+          height: button.height,
+          scrollY: window.scrollY,
+          barTop: bar?.top ?? null,
+          barBottom: bar?.bottom ?? null,
+        };
+      });
+      positions.push(position);
+      if (position.barTop !== null && position.barBottom !== null) {
+        const overlap = Math.min(position.bottom, position.barBottom) - Math.max(position.top, position.barTop);
+        assert.ok(overlap <= 0, `Sticky page turner occludes #nextButton at step ${index + 1}`);
+      }
+      await page.mouse.click(position.left + position.width / 2, position.top + position.height / 2);
+      await page.waitForTimeout(120);
+    }
+
+    const topDrift = Math.max(...positions.map((position) => position.top)) - Math.min(...positions.map((position) => position.top));
+    const scrollDrift = Math.max(...positions.map((position) => position.scrollY)) - Math.min(...positions.map((position) => position.scrollY));
+    assert.ok(topDrift <= 24, `Expected next-step button top drift <= 24px, got ${topDrift}`);
+    assert.ok(scrollDrift <= 4, `Expected no page scroll drift while stepping, got ${scrollDrift}`);
+  });
+});
