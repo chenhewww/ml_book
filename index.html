@@ -4,70 +4,71 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Animated ML Book</title>
-    <link rel="stylesheet" href="./node_modules/katex/dist/katex.min.css" />
-    <link rel="stylesheet" href="./src/styles.css" />
+    <link rel="stylesheet" href="/node_modules/katex/dist/katex.min.css" />
+    <link rel="stylesheet" href="/src/styles.css" />
+    <link rel="stylesheet" href="/src/book-shell.css" />
   </head>
   <body>
     <div id="pageShell" class="page-shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">Animated ML Book</p>
-          <h1>把机器学习算法读成一本会动的书</h1>
-          <p class="hero-copy">
-            不再从公式堆里找线索，而是按章节阅读：先理解问题，再看数据流，对照公式，最后亲手做实验。
-          </p>
-        </div>
-        <div class="hero-actions">
+      <header class="book-topbar">
+        <a class="book-brand" href="/book/linear-regression/opening" aria-label="返回本书开头">
+          <span class="book-brand-mark">ML</span>
+          <span>
+            <strong>Animated ML Book</strong>
+            <small>一本可以操作的机器学习教材</small>
+          </span>
+        </a>
+        <div class="topbar-actions">
+          <span id="backendStatus" class="status-banner">正在连接实验引擎...</span>
           <button id="sidebarToggleButton" class="button ghost sidebar-toggle" type="button" aria-controls="bookSidebar" aria-expanded="true">
             收起目录
           </button>
-          <span class="hero-note">当前 MVP 包含 5 章：线性回归、CNN、RNN、ResNet、Transformer</span>
+          <a class="github-link" href="https://github.com/chenhewww/ml_book" target="_blank" rel="noreferrer">GitHub</a>
         </div>
       </header>
 
       <main class="book-layout">
-        <aside id="bookSidebar" class="panel book-sidebar">
-          <details class="sidebar-fold" open>
-            <summary class="panel-header fold-summary">
-              <span class="fold-title">
-                <h2>目录</h2>
-                <small>Book MVP</small>
-              </span>
-              <span class="fold-indicator">折叠</span>
-            </summary>
-            <section class="sidebar-section">
-              <div id="chapterList" class="chapter-list"></div>
-              <div class="sidebar-subtitle">本章页码</div>
-              <div id="pageList" class="page-list"></div>
-            </section>
-          </details>
+        <aside id="bookSidebar" class="book-sidebar" aria-label="书籍目录">
+          <div class="sidebar-heading">
+            <span>目录</span>
+            <small>CONTENTS</small>
+          </div>
+          <nav class="sidebar-section">
+            <div id="chapterList" class="chapter-list"></div>
+            <div id="pageList" class="page-list"></div>
+          </nav>
         </aside>
 
         <section class="reader-column">
-          <article class="panel chapter-panel">
+          <article class="chapter-panel">
             <div id="chapterHero" class="chapter-hero"></div>
             <div id="readerProgress" class="reader-progress"></div>
             <div id="chapterBody" class="chapter-body"></div>
+            <nav class="page-turner-bar" aria-label="章节翻页">
+              <button id="pagePrevButton" class="page-turn page-turn-prev" type="button">
+                <span>上一节</span>
+                <strong id="previousPageLabel">返回上一页</strong>
+              </button>
+              <button id="pageNextButton" class="page-turn page-turn-next" type="button">
+                <span>下一节</span>
+                <strong id="nextPageLabel">继续阅读</strong>
+              </button>
+            </nav>
           </article>
         </section>
+
+        <aside class="section-toc" aria-label="本页目录">
+          <div class="section-toc-title">本页内容</div>
+          <nav id="sectionToc"></nav>
+        </aside>
       </main>
 
-      <div class="page-turner-bar">
-        <div class="page-turner-inner">
-          <span class="page-turner-label">翻页对比</span>
-          <div class="reader-nav reader-nav-floating">
-            <button id="pagePrevButton" class="button ghost" type="button">上一页</button>
-            <button id="pageNextButton" class="button primary" type="button">下一页</button>
-          </div>
-        </div>
-      </div>
-
       <section id="storyGrid" class="story-grid story-grid-detached">
-        <section id="plotPanel" class="panel viz-story-panel">
+        <figure id="plotPanel" class="viz-story-panel interactive-figure">
           <div class="panel-header story-panel-header">
             <div>
-              <p class="story-panel-kicker">交互图解</p>
-              <h2>交互图解</h2>
+              <p class="story-panel-kicker">INTERACTIVE FIGURE</p>
+              <h2>跟着当前知识点动手观察</h2>
             </div>
             <span id="datasetMeta" class="pill"></span>
           </div>
@@ -97,14 +98,30 @@
             </div>
             <aside id="liveFormulaBoard" class="live-formula-board"></aside>
           </div>
-        </section>
+          <div class="inline-flow">
+            <div class="inline-flow-heading">
+              <span>当前数据流</span>
+              <small>高亮节点会随步骤移动，点击节点可以查看对应计算</small>
+            </div>
+            <div id="flowDiagram" class="flow-diagram"></div>
+          </div>
+          <figcaption>图中的高亮、公式和步骤保持同步；先观察变化，再展开计算细节。</figcaption>
+        </figure>
 
-        <section class="story-appendix">
+        <details class="experiment-details">
+          <summary>
+            <span>
+              <strong>深入实验与计算过程</strong>
+              <small>数据流、逐步推导、参数和自定义数据</small>
+            </span>
+            <span class="experiment-details-action">展开</span>
+          </summary>
+          <section class="story-appendix">
           <details id="flowPanel" class="panel story-fold flow-story-panel">
             <summary class="panel-header fold-summary story-summary">
               <span class="fold-title">
-                <h2>数据如何流动</h2>
-                <small>把这一页的主线走一遍</small>
+                <h2>理解当前数据流</h2>
+                <small>直觉、术语与常见误区</small>
               </span>
               <span class="fold-meta">
                 <span id="phaseBadge" class="pill accent"></span>
@@ -112,7 +129,6 @@
               </span>
             </summary>
             <div class="story-fold-body">
-              <div id="flowDiagram" class="flow-diagram"></div>
               <div class="explanation-block">
                 <div class="explanation-header">
                   <div class="explanation-heading-copy">
@@ -220,7 +236,6 @@
                   </div>
                 </div>
                 <div class="control-footnote">这里显示的是当前正在使用或即将导入的数据。改完就导入，不需要再到别处确认。</div>
-                <div id="backendStatus" class="status-banner">正在连接后端...</div>
               </div>
               <div id="statsGrid" class="stat-grid"></div>
               <div class="metric-card">
@@ -239,10 +254,11 @@
               </div>
             </div>
           </details>
-        </section>
+          </section>
+        </details>
       </section>
     </div>
 
-    <script type="module" src="./src/main.js"></script>
+    <script type="module" src="/src/main.js"></script>
   </body>
 </html>

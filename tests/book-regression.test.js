@@ -61,10 +61,10 @@ async function openReaderPage(page, chapterTitle, pageTitle) {
   const currentPage = (await page.locator("#readerProgress").textContent()) ?? "";
   if (!currentPage.includes(pageTitle)) {
     await page.waitForFunction(
-      (targetTitle) => Array.from(document.querySelectorAll("#pageList button")).some((button) => (button.textContent ?? "").includes(targetTitle)),
+      (targetTitle) => Array.from(document.querySelectorAll("#chapterList [data-page-index]")).some((button) => (button.textContent ?? "").includes(targetTitle)),
       pageTitle
     );
-    await page.locator("#pageList").getByRole("button", { name: new RegExp(escapeRegex(pageTitle)) }).click();
+    await page.locator("#chapterList").getByRole("button", { name: new RegExp(escapeRegex(pageTitle)) }).click();
   }
 
   await waitForAppReady(page, { chapterTitle, pageTitle });
@@ -76,12 +76,18 @@ async function openNotebookPanel(page, target) {
     trace: "#tracePanel",
     stats: "#statsPanel",
   };
-
-  await page.locator(`[data-notebook-target=${quoteAttribute(target)}]`).click();
-
-  if (selectorMap[target]) {
-    await page.waitForFunction((selector) => document.querySelector(selector)?.open === true, selectorMap[target]);
+  const selector = selectorMap[target];
+  if (!selector) {
+    return;
   }
+
+  await page.locator(".experiment-details").evaluate((details) => {
+    details.open = true;
+  });
+  await page.locator(selector).evaluate((details) => {
+    details.open = true;
+  });
+  await page.waitForFunction((targetSelector) => document.querySelector(targetSelector)?.open === true, selector);
 }
 
 async function assertPanelAnchorVisible(page, selector) {
@@ -251,6 +257,9 @@ test.after(async () => {
 test("linear opening page keeps the book shell stable", async (t) => {
   await withBookPage(t, async (page) => {
     await openReaderPage(page, "第 1 章 线性回归", "1. 为什么从一条线开始");
+    assert.match(page.url(), /\/book\/linear-regression\/opening$/);
+    assert.equal(await page.locator(".experiment-details").getAttribute("open"), null);
+    assert.ok(await page.locator("#sectionToc a").count(), "The article should expose an on-page table of contents");
     await openCorePanels(page);
     await page.locator("#plotPanel").scrollIntoViewIfNeeded();
     await assertNoDocumentOverflow(page);

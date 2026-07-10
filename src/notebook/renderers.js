@@ -137,25 +137,9 @@ export function renderNotebookBridge(page) {
   return `
     <section class="book-section notebook-bridge">
       <div class="notebook-intro">
-        <div class="notebook-kicker">正文里的交互图解</div>
-        <h3>看这页对应的图和公式</h3>
-        <p>
-          先看当前页最重要的对象，再按步骤观察主图、公式和数据流。
-        </p>
-      </div>
-      <div class="notebook-rhythm">
-        <article class="notebook-rhythm-card">
-          <strong>本页阶段</strong>
-          <p>${getNotebookPhaseLabel(page.phase)}</p>
-        </article>
-        <article class="notebook-rhythm-card">
-          <strong>建议读法</strong>
-          <p>问题 → 图解 → 主公式 → 数据如何流动 → 逐步推导</p>
-        </article>
-        <article class="notebook-rhythm-card">
-          <strong>动手观察</strong>
-          <p>${page.experimentPrompt ?? "跟着当前高亮步骤往下读。"}</p>
-        </article>
+        <div class="notebook-kicker">交互图解</div>
+        <h3>现在，让这一小步动起来</h3>
+        <p>${getNotebookPhaseLabel(page.phase)} ${page.experimentPrompt ?? "跟着当前高亮步骤往下读。"}</p>
       </div>
       <div id="notebookContext" class="notebook-context"></div>
       <div id="notebookMount" class="notebook-mount"></div>
@@ -179,15 +163,9 @@ export function renderNotebookContext({ mount, snapshot, page, currentStep, tota
         <span class="pill">样本 ${snapshot.focusSample?.id ?? "--"}</span>
       </div>
       <div class="notebook-context-text">
-        <strong>${page.title}</strong>
-        <p>当前这一小步重点看 <span>${spotlight}</span>。如果图里有变化，先用肉眼说清它为什么变，再回头看公式「${traceTitle}」。</p>
+        <strong>这一帧看什么</strong>
+        <p>重点观察 <span>${spotlight}</span>。先解释图形为什么变化，再对照公式「${traceTitle}」。</p>
       </div>
-    </div>
-    <div class="notebook-jump-row">
-      <button class="button ghost notebook-jump" data-notebook-target="plot" type="button">看主图</button>
-      <button class="button ghost notebook-jump" data-notebook-target="flow" type="button">看数据如何流动</button>
-      <button class="button ghost notebook-jump" data-notebook-target="trace" type="button">看逐步推导</button>
-      <button class="button ghost notebook-jump" data-notebook-target="stats" type="button">看内部状态</button>
     </div>
   `;
 }

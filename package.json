@@ -1,10 +1,12 @@
 {
-  "name": "ml-visual-debugger",
+  "name": "animated-ml-book",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node server.js",
+    "test:smoke": "node --test tests/server-routes.test.js",
+    "test:browser": "node --test tests/book-regression.test.js",
     "build:content": "node scripts/build-content.js",
     "extract:nndl": "node scripts/extract-nndl-content.js",
     "build:nndl-drafts": "node scripts/build-nndl-drafts.js"

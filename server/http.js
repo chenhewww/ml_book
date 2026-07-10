@@ -22,7 +22,8 @@ function sendText(response, statusCode, body, contentType = "text/plain; charset
 }
 
 async function serveStatic(requestPath, response) {
-  const normalizedPath = requestPath === "/" ? "/index.html" : requestPath;
+  const isBookRoute = /^\/book\/[^/]+\/[^/]+\/?$/.test(requestPath);
+  const normalizedPath = requestPath === "/" || isBookRoute ? "/index.html" : requestPath;
   const filePath = path.join(ROOT_DIR, normalizedPath);
   const extension = path.extname(filePath);
 

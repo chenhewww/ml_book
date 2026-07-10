@@ -10,9 +10,8 @@ export function renderOpeningQuestion(page) {
   }
 
   return `
-    <section class="book-section opening-question-section primary">
-      <div class="book-kicker">起始问题</div>
-      <h3>这页先回答什么问题</h3>
+    <section class="opening-question-section primary" aria-label="本节问题">
+      <div class="book-kicker">本节问题</div>
       <p class="opening-question-text">${page.openingQuestion}</p>
       ${page.coreIdea ? `<p class="opening-question-answer">${page.coreIdea}</p>` : ""}
     </section>
@@ -27,7 +26,6 @@ export function renderCoreContent(page) {
 
   return `
     <section class="book-section core-content-section">
-      <h3>核心解释</h3>
       ${renderParagraphBlock(paragraphs)}
     </section>
   `;
