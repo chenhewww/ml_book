@@ -20,6 +20,17 @@ Animated ML Book 不是单纯的参数面板或静态可视化页面。它把机
 
 ## 主要功能
 
+### 阅读优先的信息架构
+
+项目采用文档站式的书籍布局：左侧为章节目录，中间是连续正文，右侧是本页目录。每个小节拥有独立路径，例如：
+
+```text
+/book/linear-regression/opening
+/book/transformer/qkv
+```
+
+交互图以 Figure 的形式嵌入对应正文；数据流、逐步推导、参数调整和自定义数据默认收进“深入实验与计算过程”，避免打断主阅读路径。
+
 ### 1. 章节化阅读
 项目把算法讲解组织成书页结构，而不是只给一组控件。每一页可以包含：
 
@@ -173,6 +184,7 @@ http://127.0.0.1:3000
 ```bash
 npm run build:content
 npm start
+node --test tests/server-routes.test.js
 node --test tests/book-regression.test.js
 ```
 

@@ -27,25 +27,43 @@ export function renderChapterNavigation({ chapterId, pageIndex, chapterListEleme
 
   chapterListElement.innerHTML = BOOK_CHAPTERS
     .map(
-      (chapter) => `
-        <button class="chapter-chip${chapter.id === chapterId ? " active" : ""}" data-chapter-id="${chapter.id}" type="button">
-          <strong>${chapter.title}</strong>
-          <small>${chapter.subtitle}</small>
-        </button>
-      `
+      (chapter) => {
+        const isActive = chapter.id === chapterId;
+        const chapterPages = isActive ? pages : [];
+        return `
+          <div class="chapter-nav-group${isActive ? " active" : ""}">
+            <button class="chapter-chip${isActive ? " active" : ""}" data-chapter-id="${chapter.id}" type="button" aria-expanded="${isActive}">
+              <span>${String(getChapterIndex(chapter.id) + 1).padStart(2, "0")}</span>
+              <strong>${chapter.title}</strong>
+            </button>
+            ${
+              isActive
+                ? `<div class="page-list">
+                    ${chapterPages
+                      .map(
+                        (page, index) => `
+                          <button class="page-chip${index === pageIndex ? " active" : ""}" data-page-index="${index}" type="button">
+                            <span>${chapterIndexLabel(chapterId, index)}</span>
+                            <strong>${page.title}</strong>
+                          </button>
+                        `
+                      )
+                      .join("")}
+                  </div>`
+                : ""
+            }
+          </div>
+        `;
+      }
     )
     .join("");
 
-  pageListElement.innerHTML = pages
-    .map(
-      (page, index) => `
-        <button class="page-chip${index === pageIndex ? " active" : ""}" data-page-index="${index}" type="button">
-          <span>${index + 1}</span>
-          <strong>${page.title}</strong>
-        </button>
-      `
-    )
-    .join("");
+  pageListElement.innerHTML = "";
+  pageListElement.hidden = true;
+}
+
+function chapterIndexLabel(chapterId, pageIndex) {
+  return `${getChapterIndex(chapterId) + 1}.${pageIndex + 1}`;
 }
 
 export function getAdjacentReaderPage(chapterId, pageIndex, offset) {
@@ -84,19 +102,21 @@ export function getAdjacentReaderPage(chapterId, pageIndex, offset) {
 export function renderReader({ dom, state, chapter, page, symbols, selectedSymbol }) {
   const pages = getRenderablePages(chapter);
   const chapterIndex = getChapterIndex(chapter.id);
+  document.title = `${page.title} — Animated ML Book`;
 
   dom.chapterHero.innerHTML = `
-    <p class="chapter-kicker">第 ${chapterIndex + 1} 章</p>
-    <h2>${chapter.title}</h2>
-    <p class="chapter-subtitle">${chapter.subtitle}</p>
-    <p class="chapter-blurb">${chapter.blurb}</p>
+    <div class="chapter-breadcrumb">
+      <span>第 ${chapterIndex + 1} 章</span>
+      <span aria-hidden="true">/</span>
+      <span>${chapter.title}</span>
+    </div>
+    <h1>${page.title}</h1>
+    <p class="chapter-lead">${page.summary || page.coreIdea || chapter.blurb}</p>
   `;
 
   dom.readerProgress.innerHTML = `
-    <div class="reader-progress-copy">
-      <strong>当前页：${page.title}</strong>
-      <span>第 ${state.pageIndex + 1} / ${pages.length} 页</span>
-    </div>
+    <span class="sr-only">${page.title}</span>
+    <span>第 ${state.pageIndex + 1} / ${pages.length} 节</span>
     <div class="reader-progress-bar">
       <span style="width:${((state.pageIndex + 1) / pages.length) * 100}%"></span>
     </div>
@@ -105,11 +125,11 @@ export function renderReader({ dom, state, chapter, page, symbols, selectedSymbo
   dom.chapterBody.innerHTML = `
     ${renderReaderOpeningQuestion(page)}
     ${renderReaderCoreContent(page)}
+    ${renderReaderSections(page)}
+    ${renderNotebookFormulaCards({ page, selectedSymbol, symbols })}
     ${renderReaderDiagramNotes(page)}
     ${renderNotebookBridge(page)}
     ${renderReaderWalkthrough(page)}
-    ${renderReaderSections(page)}
-    ${renderNotebookFormulaCards({ page, selectedSymbol, symbols })}
     ${renderReaderTakeaways(page)}
     ${renderReaderCallout(page)}
     ${renderReaderMiniQuiz(page)}
@@ -117,6 +137,26 @@ export function renderReader({ dom, state, chapter, page, symbols, selectedSymbo
     ${renderReaderAppendix(page)}
     ${renderReaderChapterSummaryDetail(page)}
   `;
+
+  const sectionHeadings = [...dom.chapterBody.querySelectorAll(":scope > section > h3")];
+  const usedIds = new Set();
+  const tocItems = sectionHeadings.slice(0, 8).map((heading, index) => {
+    const baseId = `${page.id}-section-${index + 1}`;
+    let id = baseId;
+    let suffix = 2;
+    while (usedIds.has(id)) {
+      id = `${baseId}-${suffix}`;
+      suffix += 1;
+    }
+    usedIds.add(id);
+    heading.id = id;
+    return { id, label: heading.textContent.trim() };
+  });
+  if (dom.sectionToc) {
+    dom.sectionToc.innerHTML = tocItems.length
+      ? tocItems.map((item) => `<a href="#${item.id}">${item.label}</a>`).join("")
+      : `<span>本页为交互式总结</span>`;
+  }
 
   const notebookMount = dom.chapterBody.querySelector("#notebookMount");
   if (dom.storyGrid) {
@@ -135,6 +175,15 @@ export function renderReader({ dom, state, chapter, page, symbols, selectedSymbo
   const nextLocation = getAdjacentReaderPage(state.chapterId, state.pageIndex, 1);
   const isFirst = previousLocation.chapterId === state.chapterId && previousLocation.pageIndex === state.pageIndex;
   const isLast = nextLocation.chapterId === state.chapterId && nextLocation.pageIndex === state.pageIndex;
+
+  const previousPage = getRenderablePages(getChapterById(previousLocation.chapterId))[previousLocation.pageIndex];
+  const nextPage = getRenderablePages(getChapterById(nextLocation.chapterId))[nextLocation.pageIndex];
+  if (dom.previousPageLabel) {
+    dom.previousPageLabel.textContent = isFirst ? "已经是第一节" : previousPage?.title ?? "上一节";
+  }
+  if (dom.nextPageLabel) {
+    dom.nextPageLabel.textContent = isLast ? "已经是最后一节" : nextPage?.title ?? "下一节";
+  }
 
   dom.pagePrevButton.disabled = state.loading || isFirst;
   dom.pageNextButton.disabled = state.loading || isLast;

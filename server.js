@@ -4,5 +4,5 @@ import { HOST, PORT } from "./server/config.js";
 const server = createAppServer();
 
 server.listen(PORT, HOST, () => {
-  console.log(`ML Visual Debugger running at http://${HOST}:${PORT}`);
+  console.log(`Animated ML Book running at http://${HOST}:${PORT}`);
 });

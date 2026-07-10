@@ -73,6 +73,9 @@ const dom = {
   pagePrevButton: document.querySelector("#pagePrevButton"),
   pageNextButton: document.querySelector("#pageNextButton"),
   pageTurnerBar: document.querySelector(".page-turner-bar"),
+  sectionToc: document.querySelector("#sectionToc"),
+  previousPageLabel: document.querySelector("#previousPageLabel"),
+  nextPageLabel: document.querySelector("#nextPageLabel"),
   plotPanel: document.querySelector("#plotPanel"),
   flowPanel: document.querySelector("#flowPanel"),
   tracePanel: document.querySelector("#tracePanel"),
@@ -159,6 +162,33 @@ function getCurrentRenderablePages() {
 
 function getCurrentPage() {
   return getCurrentRenderablePages()[state.pageIndex] ?? getCurrentRenderablePages()[0];
+}
+
+function getRouteLocation() {
+  const match = window.location.pathname.match(/^\/book\/([^/]+)\/([^/]+)\/?$/);
+  if (!match) {
+    return null;
+  }
+  const chapter = getChapterById(decodeURIComponent(match[1]));
+  const pages = getRenderablePages(chapter);
+  const pageIndex = pages.findIndex((page) => page.id === decodeURIComponent(match[2]));
+  if (chapter.id !== decodeURIComponent(match[1]) || pageIndex === -1) {
+    return null;
+  }
+  return { chapterId: chapter.id, pageIndex };
+}
+
+function syncRoute({ replace = false } = {}) {
+  const page = getCurrentPage();
+  const nextPath = `/book/${encodeURIComponent(state.chapterId)}/${encodeURIComponent(page.id)}`;
+  if (window.location.pathname === nextPath) {
+    return;
+  }
+  if (replace) {
+    history.replaceState(null, "", nextPath);
+    return;
+  }
+  history.pushState(null, "", nextPath);
 }
 
 function clampPageIndex(chapterId, pageIndex) {
@@ -509,11 +539,15 @@ function render() {
   renderPlot({ svg: dom.plot, snapshot, getSelectedTrace: getRenderTrace, round });
 }
 
-async function selectChapter(chapterId, pageIndex = 0) {
+async function selectChapter(chapterId, pageIndex = 0, { updateRoute = true } = {}) {
   const chapter = getChapterById(chapterId);
   const algorithmChanged = chapter.algorithmId !== state.algorithmId;
   state.chapterId = chapter.id;
   state.pageIndex = clampPageIndex(chapter.id, pageIndex);
+  if (updateRoute) {
+    syncRoute();
+    window.scrollTo({ top: 0 });
+  }
 
   if (algorithmChanged) {
     if (state.autoplayHandle) {
@@ -551,16 +585,14 @@ function bindEvents() {
   });
 
   dom.chapterList.addEventListener("click", async (event) => {
+    const pageButton = event.target.closest("[data-page-index]");
+    if (pageButton) {
+      await selectChapter(state.chapterId, Number(pageButton.dataset.pageIndex));
+      return;
+    }
     const button = event.target.closest("[data-chapter-id]");
     if (button) {
       await selectChapter(button.dataset.chapterId, 0);
-    }
-  });
-
-  dom.pageList.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-page-index]");
-    if (button) {
-      await selectChapter(state.chapterId, Number(button.dataset.pageIndex));
     }
   });
 
@@ -617,34 +649,12 @@ function bindEvents() {
     await goToAdjacentPage(1);
   });
 
-  dom.chapterBody.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-notebook-target]");
-    if (!button) {
-      return;
+  window.addEventListener("popstate", async () => {
+    const location = getRouteLocation();
+    if (location) {
+      await selectChapter(location.chapterId, location.pageIndex, { updateRoute: false });
+      window.scrollTo({ top: 0 });
     }
-
-    const panels = {
-      plot: dom.plotPanel,
-      flow: dom.flowPanel,
-      trace: dom.tracePanel,
-      stats: dom.statsPanel,
-    };
-    const panel = panels[button.dataset.notebookTarget];
-    if (!panel) {
-      return;
-    }
-
-    const isDetailsPanel = panel.tagName?.toLowerCase() === "details";
-    if (isDetailsPanel) {
-      panel.open = true;
-    }
-    const scrollTarget = isDetailsPanel ? panel.querySelector("summary") ?? panel : panel;
-    const pageTurnerHeight = dom.pageTurnerBar?.offsetHeight ?? 0;
-    const top = scrollTarget.getBoundingClientRect().top + window.scrollY - 16;
-    window.scrollTo({
-      top: Math.max(0, top - pageTurnerHeight),
-      behavior: "smooth",
-    });
   });
 
   dom.languageSelect.addEventListener("change", (event) => {
@@ -798,6 +808,11 @@ function bindEvents() {
 
 async function bootstrap() {
   try {
+    const routeLocation = getRouteLocation();
+    if (routeLocation) {
+      state.chapterId = routeLocation.chapterId;
+      state.pageIndex = routeLocation.pageIndex;
+    }
     state.metadata = await fetchJson("/api/metadata");
     state.algorithmId = getCurrentChapter().algorithmId;
     state.learningRate = state.metadata.defaults.learningRate;
@@ -807,6 +822,7 @@ async function bootstrap() {
     populateDatasetOptions();
     populateCustomDatasetGuide(true);
     await rebuildExperiment();
+    syncRoute({ replace: true });
     syncCustomDatasetEditor({ force: true });
     setBackendStatus("会动的书已加载完成。先读正文，再操作图形。", "ready");
   } catch (error) {
